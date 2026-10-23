@@ -1,0 +1,17 @@
+[
+  {
+    "name": "aws",
+    "ip": "REPLACE",
+    "url": "http://REPLACE/health"
+  },
+  {
+    "name": "azure",
+    "ip": "REPLACE",
+    "url": "http://REPLACE/health"
+  },
+  {
+    "name": "gcp",
+    "ip": "REPLACE",
+    "url": "http://REPLACE/health"
+  }
+]

@@ -1,0 +1,9 @@
+groups:
+  - name: origin-health
+    rules:
+      - alert: OriginUnavailable
+        expr: probe_success{job="origins"} == 0
+        for: 1m
+        labels: {severity: warning}
+        annotations:
+          summary: "Origin {{ $labels.cloud }} is unavailable"

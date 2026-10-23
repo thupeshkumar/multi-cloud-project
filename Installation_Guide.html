@@ -1,0 +1,243 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Installation and configuration guide</title><style>
+:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;background:#eef2f6;color:#172536;font:15px/1.6 "Segoe UI",Arial,sans-serif}.toolbar{position:sticky;top:0;background:#13283d;color:white;padding:12px 24px;display:flex;gap:12px;align-items:center;z-index:2;font-size:13px}.toolbar button{background:white;border:0;border-radius:4px;padding:8px 14px;cursor:pointer;color:#13283d}.toolbar span{margin-right:auto}main{max-width:1000px;margin:28px auto;padding:48px 58px;background:white;box-shadow:0 3px 22px #14293c16}h1{font-size:31px;line-height:1.2;color:#000;margin:0 0 28px}h2{font-size:21px;line-height:1.3;margin-top:35px;break-after:avoid}h3{font-size:17px;margin-top:24px;break-after:avoid}p{margin:12px 0}table{border-collapse:collapse;width:100%;font-size:13px;margin:18px 0;table-layout:fixed}th{background:#e9eff5;text-align:left}th,td{border:1px solid #ccd6df;padding:9px 11px;vertical-align:top;overflow-wrap:anywhere}tr{break-inside:avoid}a{color:#165b96;overflow-wrap:anywhere}pre{background:#f1f4f7;border:1px solid #dce3e9;border-radius:4px;padding:14px;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}code{font-family:Consolas,monospace;font-size:.9em}li{margin:6px 0}main[contenteditable=true]:focus{outline:2px solid #668aaa} @page{size:A4;margin:18mm} @media print{body{background:white;font-size:10.5pt;line-height:1.4}.toolbar{display:none}main{margin:0;max-width:none;padding:0;box-shadow:none}h1{font-size:25pt}h2{font-size:16pt}h3{font-size:12pt}table{font-size:8.5pt}pre{font-size:8pt}a{color:inherit;text-decoration:none}p{orphans:3;widows:3}}
+</style></head><body><div class="toolbar"><span>Read the free tier and cost checks before deploying.</span><button onclick="window.print()">Print or save PDF</button></div><main contenteditable="false"><h1>Multi Cloud Deployment and Management with Terraform</h1>
+<p>Installation and configuration guide • Windows workstation • 22 October 2026</p>
+<h2>1. Read this before creating resources</h2>
+<p>This is a student demonstration of three cloud web servers, private object storage, local monitoring and DNS failover. It is not a guaranteed zero-cost or production high-availability system. No cloud resources have been created by preparing this package.</p>
+<p><strong>Cloudflare Free provides DNS, but its managed Load Balancing health checks and automatic failover are a paid add-on.</strong> This project uses a Python controller on your laptop to check origins and change a DNS record through the Cloudflare API. Your laptop and internet connection must remain on. This is active-passive routing, not traffic load balancing. If you need managed load balancing to satisfy the original brief, obtain budget for it and describe that as a separate extension. A domain must already be owned; domain registration is not included in free DNS.</p>
+<h3>Check your account offers</h3>
+<table><thead><tr><th>Component</th><th>Configuration</th><th>Free-tier condition and cost exposure</th></tr></thead><tbody>
+<tr><td>AWS compute</td><td>Ubuntu EC2 t3.micro, 8 GB gp3, us-east-1</td><td>Check your actual account plan and credits. New-account offers changed in July 2025. Do not assume the older 12-month allowance applies.</td></tr>
+<tr><td>AWS storage and database</td><td>Private S3; optional RDS PostgreSQL db.t3.micro</td><td>S3 storage, operations, RDS, backups and networking can consume credits or incur charges. Skip RDS if its estimated cost is not covered.</td></tr>
+<tr><td>Azure compute</td><td>Ubuntu Standard_B1s, 30 GB Standard LRS OS disk, East US</td><td>Check the VM SKU and disk entitlement in your subscription. B1s availability and free offers differ; do not silently substitute another size. Standard public IPv4 is a separate cost item.</td></tr>
+<tr><td>Azure database</td><td>Optional Azure SQL free offer</td><td>Select the explicit free offer and auto-pause when the monthly free limit is reached. Ordinary serverless deployment is not automatically free.</td></tr>
+<tr><td>Azure storage</td><td>Private Standard LRS Blob account</td><td>Confirm your account&#x27;s included amount and operations. An empty account does not reserve 5 GB.</td></tr>
+<tr><td>GCP compute</td><td>e2-micro, us-central1-a, 30 GB pd-standard</td><td>Eligible regional compute and disk have monthly limits. External IPv4 and outbound traffic require separate checks.</td></tr>
+<tr><td>GCP storage</td><td>Regional Standard bucket in us-central1</td><td>Free allowance includes 5 GB-months in eligible US regions plus limited operations; this is a quota, not a bucket capacity setting.</td></tr>
+<tr><td>GCP database</td><td>PostgreSQL Docker container on the VM</td><td>No managed DB fee, but it shares the VM&#x27;s small RAM and disk and requires backups.</td></tr>
+<tr><td>Local tools</td><td>Prometheus, blackbox exporter, Grafana, Python</td><td>Use your own machine; cloud traffic and your internet connection still apply.</td></tr>
+</tbody></table>
+<p>GCP&#x27;s published standard VM external IPv4 rate is USD 0.005/hour with only one free hour/month/account: roughly USD 3.65 for 730 hours before credits and taxes. AWS/Azure public IPv4, managed disks, snapshots and cross-cloud transfers also need checking. Budget alerts generally notify; they do not cap spending. Use a short lab session and destroy resources afterwards. Do not upload 5 GB just to prove the quota; use a tiny sample file.</p>
+<p>AWS&#x27;s current Free account plan ends after six months or credit exhaustion, whichever occurs first. Historical free allowances may have expired for an older account. Check Billing before planning. Azure SQL&#x27;s documented offer includes 100,000 vCore-seconds and 32 GB per database per month; select <strong>Auto-pause the database until next month</strong>, and verify subscription eligibility. GCP&#x27;s regional e2-micro allowance is shared across eligible instances, not an unlimited allowance per VM.</p>
+<h2>2. Architecture and package scope</h2>
+<pre><code>Browser -&gt; Cloudflare DNS only A record app.yourdomain.com
+                         |
+                  currently selected IP
+                AWS -&gt; Azure -&gt; GCP priority
+                 |       |       |
+               Nginx   Nginx   Nginx
+                 |       |       |
+                S3     Blob     GCS     private backup destinations
+
+Laptop -&gt; direct origin health probes -&gt; Python -&gt; Cloudflare API
+Laptop -&gt; blackbox exporter -&gt; Prometheus -&gt; Grafana
+Optional independent DB exercises: RDS PostgreSQL / Azure SQL / GCP PostgreSQL</code></pre>
+<p>Terraform modules create VMs, networks, firewall rules and private storage. They install a static Nginx page with a provider name and <code>/health</code>. Managed databases are optional console exercises below, not resources created by this Terraform package. PostgreSQL and Azure SQL use different engines; they cannot be described as native cross-cloud replicas. The demo webpage does not read or write any database. Consequently web failover does not prove database failover, zero data loss, or production disaster recovery.</p>
+<p>Files: <code>terraform/</code> contains the root and three provider modules; <code>bootstrap/</code> contains startup scripts; <code>failover/</code> contains the DNS controller; <code>monitoring/</code> contains local containers; <code>database/</code> contains the optional PostgreSQL container; <code>.github/workflows/validate.yml</code> contains credential-free validation. <code>SUBMISSION.md</code> is your report template.</p>
+<h2>3. Install workstation tools</h2>
+<p>Use Windows 10/11 with hardware virtualization and enough RAM for Docker Desktop. Run commands in PowerShell unless explicitly marked <strong>on the Linux VM</strong>. Install only tools you do not already have.</p>
+<ol>
+<li>Install Git for Windows, Python 3, AWS CLI v2, Azure CLI, Google Cloud CLI and Terraform from official installers. Terraform must be at least 1.6 and below 2.0; the validation workflow uses 1.13.5.</li>
+<li>In an administrator terminal, run <code>wsl --install</code> if WSL2 is missing, then restart Windows when requested. Install Docker Desktop using its WSL2 backend and start it in Linux containers mode.</li>
+<li>Check the installations in a fresh terminal:</li>
+</ol>
+<pre><code>git --version
+python --version
+terraform version
+aws --version
+az version
+gcloud version
+docker version
+docker compose version
+ssh -V</code></pre>
+<p><code>docker version</code> must show a reachable server. A missing server means Docker Desktop has not started. Use the official installation links in section 16. This package uses public, pinned container version tags; check current release/security guidance before reuse beyond this short lab.</p>
+<h2>4. Accounts credentials and permissions</h2>
+<p>Enable MFA, avoid root/owner credentials for routine deployment, and create a billing alert in each cloud before deployment. Set low thresholds suited to your budget, such as USD 1 and USD 5, and check daily spending. Record your offer expiry and available credit.</p>
+<p><strong>AWS:</strong> Create/use an IAM Identity Center permission set scoped to the lab. It needs EC2 networking, VM, key-pair and S3 management, plus read access for image discovery. Run:</p>
+<pre><code>aws configure sso --profile multicloud
+aws sso login --profile multicloud
+$env:AWS_PROFILE = &#x27;multicloud&#x27;
+aws sts get-caller-identity</code></pre>
+<p>If Identity Center is unavailable in your account, use an approved short-lived IAM role/session or a dedicated lab IAM user configured locally with <code>aws configure --profile multicloud</code>. Never put access keys into Terraform files or screenshots. Optional RDS needs additional narrowly scoped database permissions.</p>
+<p><strong>Azure:</strong> Use a dedicated resource group/subscription for this lab. The deployer needs resource management rights for networks, VMs and storage; Contributor at the lab subscription is convenient for an isolated student subscription but broader than a production deployment identity. Do not use subscription-wide Owner solely for this exercise.</p>
+<pre><code>az login
+az account list --output table
+az account set --subscription &#x27;YOUR_SUBSCRIPTION_ID&#x27;
+az account show --output table</code></pre>
+<p>Register <code>Microsoft.Compute</code>, <code>Microsoft.Network</code> and <code>Microsoft.Storage</code> resource providers in the portal if necessary. Optional SQL also needs <code>Microsoft.Sql</code>. If your subscription cannot register providers, ask your administrator; don&#x27;t switch to a paid subscription without checking its terms.</p>
+<p><strong>GCP:</strong> Create a dedicated project, link an eligible billing account, enable Compute Engine and Cloud Storage APIs, and use an identity limited to that project. Compute Admin and Storage Admin are broad lab roles; replace them with narrower roles for real use. Service-account impersonation may require Service Account User as well, but this VM template attaches no service account.</p>
+<pre><code>gcloud auth login
+gcloud config set project YOUR_PROJECT_ID
+gcloud services enable compute.googleapis.com storage.googleapis.com
+gcloud auth application-default login
+gcloud auth application-default set-quota-project YOUR_PROJECT_ID</code></pre>
+<p>The last two commands set application default credentials used by Terraform; ordinary <code>gcloud auth login</code> alone is insufficient. Project API enablement requires Service Usage permissions. If an organization enforces OS Login, adapt the module to that policy instead of disabling the policy; the supplied SSH-key configuration assumes a personal project without that restriction.</p>
+<p>For the original brief&#x27;s Vault requirement, this package uses cloud CLI credential stores as the lab&#x27;s alternative secret mechanism. Vault is not implemented. Do not claim it is. For CI deployment, use cloud OIDC federation rather than copying these local credentials into repository secrets.</p>
+<h2>5. Configure Terraform</h2>
+<p>Extract the package into a folder you control and open PowerShell in <code>multi-cloud-project</code>.</p>
+<pre><code>ssh-keygen -t rsa -b 4096 -f &quot;$HOME/.ssh/multicloud&quot;
+Copy-Item terraform/terraform.tfvars.example terraform/terraform.tfvars</code></pre>
+<p>Use a passphrase for the key. Edit <code>terraform.tfvars</code>:</p>
+<ul>
+<li><code>name</code>: globally unique, 8–18 lowercase letters/digits, starting with a letter. Example: <code>studentmc26xyz</code>.</li>
+<li><code>admin_cidr</code>: your current public IPv4 followed by <code>/32</code>, obtained from your router or a trusted IP lookup. The example address is deliberately unusable.</li>
+<li><code>ssh_public_key_path</code>: full path to the public <code>.pub</code> file, using forward slashes if needed.</li>
+<li><code>azure_subscription_id</code> and <code>gcp_project_id</code>: your real values.</li>
+</ul>
+<p>The only public application port is 80. SSH port 22 is restricted to <code>admin_cidr</code>; database ports are not public. Storage is private. Monitoring interfaces bind to localhost. Public HTTP is used solely for a non-sensitive static demonstration. For HTTPS, add a real hostname/certificate and secured origins before handling credentials or user data. Do not use Cloudflare Flexible TLS as a production substitute for origin TLS.</p>
+<pre><code>Set-Location terraform
+terraform fmt -check -recursive
+terraform init
+terraform validate
+terraform plan -out=lab.tfplan
+terraform show lab.tfplan</code></pre>
+<p>Inspect every planned resource and obtain pricing in the cloud consoles/calculators for the full set, including IP addresses and disks. This root plans all three clouds; it does not have a free-tier safety switch. If any service is ineligible, stop and adapt the plan before applying. Keep <code>lab.tfplan</code> private; plans and state can contain sensitive data. Keep <code>.terraform.lock.hcl</code> in Git, and keep credentials, variable files and state out of Git. The lab uses local state for one operator; use encrypted, locked remote state for a team.</p>
+<h2>6. Deploy and check each server</h2>
+<p>These commands create potentially billable resources in your accounts. Execute them only after the cost check above.</p>
+<pre><code>terraform apply lab.tfplan
+terraform output origin_ips
+terraform output storage</code></pre>
+<p>Wait several minutes for package installation. Substitute the real addresses below:</p>
+<pre><code>curl.exe http://AWS_IP/health
+curl.exe http://AZURE_IP/health
+curl.exe http://GCP_IP/health
+ssh -i &quot;$HOME/.ssh/multicloud&quot; ubuntu@AWS_IP
+ssh -i &quot;$HOME/.ssh/multicloud&quot; labadmin@AZURE_IP
+ssh -i &quot;$HOME/.ssh/multicloud&quot; labadmin@GCP_IP</code></pre>
+<p>Expected responses: <code>healthy aws</code>, <code>healthy azure</code>, <code>healthy gcp</code>. Run the SSH commands individually. On a VM, check <code>sudo systemctl status nginx</code>, <code>sudo cloud-init status --wait</code> and <code>/var/log/cloud-init-output.log</code>. GCP startup-script logs are available with <code>sudo journalctl -u google-startup-scripts.service</code>. Keep SSH sessions available while demonstrating failover.</p>
+<p>The templates create no NAT gateway, load balancer, cross-cloud VPN or managed database. AWS and GCP addresses may change after stop/start or recreation. Re-read Terraform outputs and update DNS, controller targets and Prometheus whenever addresses change. If a particular East US VM size or image is unavailable, check eligible alternatives and their costs before changing the module.</p>
+<h2>7. Configure Cloudflare DNS</h2>
+<ol>
+<li>Add your existing domain to Cloudflare Free and complete the registrar nameserver change. Wait for the zone to be active. Preserve existing email and other DNS records.</li>
+<li>Add exactly one dedicated A record: name <code>app</code>, IPv4 = AWS origin, proxy status <strong>DNS only</strong> (grey cloud), TTL 60 seconds or the lowest supported value. Use a test subdomain, not an existing production name. Remove conflicting test AAAA or CNAME records at this same name.</li>
+<li>Create a Cloudflare API token with <strong>Zone → DNS → Edit</strong>, limited to this zone. Add zone read only if your discovery method needs it. Store the token locally for the session; never commit it.</li>
+<li>Copy Zone ID from the zone overview. To discover the record ID, use the API listing below. Keep the token out of screenshots and logs.</li>
+</ol>
+<pre><code>$env:CF_API_TOKEN = Read-Host &#x27;Paste the scoped API token&#x27; -MaskInput
+$env:CF_ZONE_ID = &#x27;YOUR_ZONE_ID&#x27;
+$env:CF_RECORD_NAME = &#x27;app.yourdomain.com&#x27;
+$headers = @{Authorization = &quot;Bearer $env:CF_API_TOKEN&quot;}
+$uri = &quot;https://api.cloudflare.com/client/v4/zones/$env:CF_ZONE_ID/dns_records?type=A&amp;name=$env:CF_RECORD_NAME&quot;
+(Invoke-RestMethod -Headers $headers -Uri $uri).result | Select-Object id,name,content,proxied
+$env:CF_RECORD_ID = &#x27;YOUR_RECORD_ID&#x27;</code></pre>
+<p><code>-MaskInput</code> requires PowerShell 7; in Windows PowerShell 5.1 use a secure secret-entry method or upgrade to PowerShell 7. Do not replace this with a token literal in a shared terminal transcript. Use the same PowerShell session for running the controller.</p>
+<p>From the package root:</p>
+<pre><code>Copy-Item failover/origins.example.json failover/origins.json</code></pre>
+<p>Edit every <code>ip</code> and <code>url</code> to the real direct IPv4 and <code><a href="http://IP/health">http://IP/health</a></code>. Keep names <code>aws</code>, <code>azure</code>, <code>gcp</code> and their order. Do not probe the shared DNS name: that would hide which origin is failing.</p>
+<pre><code>python failover/failover.py --origins failover/origins.json --dry-run
+# After observing healthy probes, stop with Ctrl+C and enable API updates:
+python failover/failover.py --origins failover/origins.json</code></pre>
+<p>The controller checks all origins every 30 seconds plus request time. It requires three healthy probes before selecting a destination and three failed probes before abandoning the active origin. It prefers AWS, then Azure, then GCP, and delays changes by a 180-second cooldown. When all origins are unhealthy it leaves DNS unchanged and logs the condition. It reads the DNS record every cycle, rejects a proxied or wrong record, and logs API errors without deleting the record. Run only one controller. The cooldown is in memory and resets if the process restarts.</p>
+<p>This controller is a lab process: keep the terminal open and prevent laptop sleep for the demo. A scheduled task/service would need its own secure credential handling and restart policy. Local connectivity loss can make every origin look down. DNS caching means failover is not instant, existing connections may break and some clients may retain an old address beyond TTL. Do not claim a fixed RTO from the probe interval alone.</p>
+<h2>8. Start local Prometheus and Grafana</h2>
+<p>Edit <code>monitoring/prometheus.yml</code>, replacing all three <code>*_IP</code> placeholders. Use a second terminal from the package root:</p>
+<pre><code>$env:GRAFANA_ADMIN_PASSWORD = Read-Host &#x27;Choose a Grafana admin password&#x27; -MaskInput
+docker compose -f monitoring/compose.yml config --quiet
+docker compose -f monitoring/compose.yml up -d</code></pre>
+<p>Open <code><a href="http://localhost:9090/targets">http://localhost:9090/targets</a></code>; all origins should be UP as scrape jobs. Then query <code>probe_success</code>: values of 1 indicate healthy HTTP probes. A scrape being UP alone means the exporter answered, not that the origin is healthy.</p>
+<p>Open <code><a href="http://localhost:3000">http://localhost:3000</a></code>, username <code>admin</code>, password chosen above. Add a Prometheus data source with URL <code><a href="http://prometheus:9090">http://prometheus:9090</a></code>. Create panels for:</p>
+<table><thead><tr><th>Panel</th><th>PromQL</th><th>Unit</th></tr></thead><tbody>
+<tr><td>Origin health</td><td><code>probe_success{job=&quot;origins&quot;}</code></td><td>0 or 1</td></tr>
+<tr><td>Request duration</td><td><code>probe_duration_seconds{job=&quot;origins&quot;}</code></td><td>seconds</td></tr>
+<tr><td>HTTP status</td><td><code>probe_http_status_code{job=&quot;origins&quot;}</code></td><td>number</td></tr>
+<tr><td>Observed availability</td><td><code>avg_over_time(probe_success{job=&quot;origins&quot;}[1h]) * 100</code></td><td>percent</td></tr>
+</tbody></table>
+<p>Use the <code>cloud</code> label in legends. Availability is for the observed window only. Prometheus has a one-minute <code>OriginUnavailable</code> alert rule; view it at <code>/alerts</code>. No Alertmanager or Slack/PagerDuty delivery is included, so firing alerts are local only. To add notifications, deploy Alertmanager and securely configure an authorized destination. The blackbox configuration measures reachability and response time; it does not measure VM CPU/RAM or cloud billing. Those need node exporters secured by tunnels/private networking and provider billing integrations respectively. Use provider billing consoles for this lab&#x27;s cost evidence.</p>
+<h2>9. Optional databases matching the original diagram</h2>
+<p>Complete this only if required by your evaluator and covered by your account offer. These console-created databases are not tracked by this Terraform state and must be deleted separately.</p>
+<h3>AWS RDS PostgreSQL</h3>
+<p>Create a small PostgreSQL RDS database in us-east-1 using <code>db.t3.micro</code> only if offered and eligible. Use Single-AZ, the smallest storage shown as eligible (commonly 20 GB), no optional paid monitoring, and <strong>Public access = No</strong>. Use the Terraform VPC. RDS needs a DB subnet group with subnets in at least two availability zones: the template creates only one, so first add a second private subnet, for example <code>10.10.2.0/24</code> in us-east-1b, then create the DB subnet group containing the two subnets. No NAT gateway is needed for a VM to connect to RDS inside the VPC. Create a separate DB security group allowing TCP 5432 <strong>only from the EC2 application security group</strong>, not from the internet.</p>
+<p>Choose a secure administrator password using a local secret store. If you select managed credentials in Secrets Manager, check its separate cost. Connect from the EC2 VM with <code>psql</code> using the RDS endpoint, database name and <code>sslmode=verify-full</code> with the current AWS RDS CA bundle installed. Verify <code>SELECT version();</code>. Capture an evidence screenshot without secrets. Check backup retention and final-snapshot costs before deletion. Do not enter database passwords into Terraform user data.</p>
+<h3>Azure SQL free offer</h3>
+<p>In the Azure SQL portal, use the explicit <strong>Try for free / free database offer</strong> workflow, choose an eligible server and region, and enable <strong>Auto-pause the database until next month</strong> when the free limit is reached. Confirm the free-offer label and displayed estimate before creating it; ordinary General Purpose serverless is different. Prefer Microsoft Entra authentication. For a short public-endpoint exercise, allow only the Azure VM&#x27;s public IPv4 in the SQL server firewall; leave <strong>Allow Azure services and resources to access this server</strong> disabled. Use the Azure VM and a current Microsoft <code>sqlcmd</code> client with encrypted certificate-validated connections to verify <code>SELECT @@VERSION;</code>. Recheck that rule if the source IP changes. For production, use private endpoints and account for their cost.</p>
+<p>The web template does not depend on Azure SQL. Serverless auto-pause/resume delays would also affect application health if a future application used it.</p>
+<h3>PostgreSQL container on GCP VM</h3>
+<p>On the GCP Linux VM, install Docker Engine and the Compose plugin using Docker&#x27;s official Ubuntu instructions. Copy <code>database/compose.yml</code> to <code>~/database/compose.yml</code> with <code>scp</code>. On that VM:</p>
+<pre><code>cd ~/database
+read -rsp &#x27;Postgres password: &#x27; POSTGRES_PASSWORD; echo
+export POSTGRES_PASSWORD
+sudo --preserve-env=POSTGRES_PASSWORD docker compose up -d
+sudo --preserve-env=POSTGRES_PASSWORD docker compose exec postgres psql -U projectuser -d projectdb</code></pre>
+<p>Inside <code>psql</code>:</p>
+<pre><code>CREATE TABLE IF NOT EXISTS project_demo (id integer PRIMARY KEY, message text NOT NULL);
+INSERT INTO project_demo VALUES (1, &#x27;Multi cloud backup test&#x27;) ON CONFLICT (id) DO NOTHING;
+SELECT * FROM project_demo;
+\q</code></pre>
+<p>Port 5432 binds only to loopback and should never be opened in the cloud firewall. The named volume persists container restarts, but is lost if the underlying VM/disk is deleted. This e2-micro has little RAM; keep the dataset small and inspect memory usage. A password environment variable is acceptable for this disposable lab, while production should use a proper secret mechanism. The <code>.env</code> file, if used, must have mode 600 and be ignored by Git.</p>
+<h2>10. Backup restore and database portability</h2>
+<p>Terraform recreates infrastructure; it does not replicate your database rows. Demonstrate a measured backup-and-restore workflow. The safe scope is a tiny PostgreSQL dataset restored into a separate empty PostgreSQL database. Azure SQL requires its own T-SQL schema and SQL Server-compatible migration/export path; a PostgreSQL dump cannot be restored to Azure SQL.</p>
+<p>On the GCP Linux VM with the database running:</p>
+<pre><code>cd ~/database
+mkdir -p backups
+chmod 700 backups
+sudo --preserve-env=POSTGRES_PASSWORD docker compose exec -T postgres pg_dump -U projectuser -d projectdb -Fc &gt; backups/projectdb.dump
+sha256sum backups/projectdb.dump &gt; backups/projectdb.dump.sha256
+sudo --preserve-env=POSTGRES_PASSWORD docker compose exec -T postgres createdb -U projectuser restorecheck
+sudo --preserve-env=POSTGRES_PASSWORD docker compose exec -T postgres pg_restore -U projectuser -d restorecheck &lt; backups/projectdb.dump
+sudo --preserve-env=POSTGRES_PASSWORD docker compose exec -T postgres psql -U projectuser -d restorecheck -c &#x27;SELECT * FROM project_demo;&#x27;</code></pre>
+<p>Use a fresh database name if repeating the exercise. Record row count and ordered row contents before/after, backup timestamp, backup checksum and restore duration. A backup-file checksum checks transfer integrity; it alone does not prove the restored rows are correct. This is a same-engine restore exercise, not evidence of cross-cloud recovery until you repeat the restore on an independently provisioned destination in another provider.</p>
+<p>Copy the tiny dump and checksum to your laptop with <code>scp</code>. From PowerShell, upload copies to all three private storage destinations (replace names from <code>terraform output storage</code>):</p>
+<pre><code>aws s3 cp .\backups\projectdb.dump s3://YOUR_AWS_BUCKET/backups/projectdb.dump
+az storage blob upload --auth-mode login --account-name YOUR_AZURE_ACCOUNT --container-name backups --name projectdb.dump --file .\backups\projectdb.dump
+gcloud storage cp .\backups\projectdb.dump gs://YOUR_GCP_BUCKET/backups/projectdb.dump</code></pre>
+<p>Azure upload requires Storage Blob Data Contributor (a control-plane Contributor role alone does not grant data access). Allow role-assignment propagation time. Upload the checksum too, then download one copy to a different local filename and compare <code>Get-FileHash -Algorithm SHA256</code>. For sensitive data, encrypt backups before upload and keep the key separately. Use only dummy data here.</p>
+<p>For cross-cloud recovery, download a stored dump, provision a separate PostgreSQL target with compatible version/extensions, restore to an empty database and verify contents before any application cutover. You can use the optional RDS PostgreSQL target through its EC2 VM, with its own credentials and CA validation. Measure RPO as the gap between failure and the most recent usable backup, and RTO from failure to verified restored service. Do not label this continuous replication. Copying object storage does not replicate database transactions or guarantee consistency.</p>
+<h2>11. Failover and recovery demonstration</h2>
+<ol>
+<li>Verify direct <code>/health</code> on each origin. Start the real DNS controller and local monitoring. Confirm DNS currently resolves to AWS using <code>Resolve-DnsName app.yourdomain.com</code>.</li>
+<li>Record start time and baseline webpage/provider. On AWS over SSH run <code>sudo systemctl stop nginx</code>.</li>
+<li>Watch <code>probe_success</code>, local Prometheus alert state and controller logs. After consecutive failed checks and cooldown, the controller should select Azure. Check the Cloudflare record and DNS from a resolver you control; refresh the webpage after cache expiry. Record actual outage-to-Azure time.</li>
+<li>Stop Nginx on Azure. Verify the controller selects GCP and record the measured delay. If all origins are unavailable, DNS is intentionally left unchanged; record this limitation.</li>
+<li>Run <code>sudo systemctl start nginx</code> on AWS and Azure. After confirmed health and cooldown, observe preferred-primary failback. Record each measured result.</li>
+<li>Capture direct probes, DNS record before/after, dashboard, alert and controller log. Restore all services and stop the controller before cleanup.</li>
+</ol>
+<p>This simulates application-service outages, not real regional outages. Expected outcomes are test criteria, not completed results. If the laptop sleeps, no DNS decisions or monitoring occur. Browser caching, OS resolver caching and open connections can delay what you see; record these factors instead of reporting an invented failover time.</p>
+<h2>12. CI and version control</h2>
+<p>Push the extracted project to a private repository after reviewing <code>.gitignore</code>. The supplied GitHub Actions workflow checks formatting and configuration validation only. It does not run apply and needs no cloud credentials. Commit <code>.terraform.lock.hcl</code> after initialization. Check your repository&#x27;s Actions billing allowance. For a later deployment pipeline, add cloud OIDC federation, encrypted remote state and a reviewed saved plan before apply. These are future work, not delivered features.</p>
+<h2>13. Troubleshooting</h2>
+<table><thead><tr><th>Symptom</th><th>Check</th></tr></thead><tbody>
+<tr><td>Terraform authorization error</td><td>AWS profile/session, Azure subscription, GCP ADC, required roles and enabled APIs</td></tr>
+<tr><td>Bucket/account name already exists</td><td>Choose a fresh global <code>name</code>; recreating resources can change IPs</td></tr>
+<tr><td>Azure SKU unavailable</td><td>Subscription quota, East US availability and eligible free SKU; check cost before substituting</td></tr>
+<tr><td>Website timeout</td><td>Startup logs, port 80 firewall, routing and current public IP</td></tr>
+<tr><td>SSH timeout</td><td>Your current public IPv4 matches <code>admin_cidr</code>; correct key/user; no VPN IP change</td></tr>
+<tr><td>DNS not switching</td><td>Laptop awake, API token scoped correctly, DNS-only A record, direct health targets and controller logs</td></tr>
+<tr><td>Dashboard shows exporter UP but outage persists</td><td>Query <code>probe_success</code>, not only <code>up</code></td></tr>
+<tr><td>SQL connection failure</td><td>DB endpoint, engine-specific client, TLS CA, credentials and narrow firewall rule</td></tr>
+<tr><td>Unexpected charge</td><td>Public IPs, disk type, managed DBs, snapshots, trial expiry, transfer and lingering resources</td></tr>
+<tr><td>Storage cannot be deleted</td><td>Objects/versions, retention/soft-delete settings and manual databases; inspect before removing data</td></tr>
+</tbody></table>
+<h2>14. Cleanup</h2>
+<p>Save your screenshots and dummy test evidence first. Stop the DNS controller with Ctrl+C and remove the dedicated test DNS record so it cannot point at a reassigned public IP. Stop local containers from the package root:</p>
+<pre><code>docker compose -f monitoring/compose.yml down
+Set-Location terraform
+terraform plan -destroy -out=cleanup.tfplan
+terraform show cleanup.tfplan
+terraform apply cleanup.tfplan</code></pre>
+<p>Terraform intentionally does not force-delete nonempty buckets. Before destroy, list and remove only the dummy objects you uploaded from this lab&#x27;s exact bucket/container names after reviewing whether you still need them. Empty versioned objects or retained data if applicable. Do not remove unrelated data. Optional console-created RDS/SQL resources can block VPC/resource-group deletion; delete those first, respecting any retained backups/snapshots. Delete the manually added second AWS subnet and DB subnet group. Deleting the Azure resource group removes contained SQL resources too, so export any needed evidence beforehand.</p>
+<p>Check all cloud consoles for remaining IPs, disks, storage accounts, snapshots, managed databases and backups, including soft-deleted data. Verify billing the following day. Docker volumes remain after <code>down</code>; only add <code>-v</code> when you deliberately want to erase local monitoring history. Revoke the Cloudflare token and remove session credentials when finished. Never delete Terraform state before cloud cleanup is verified.</p>
+<h2>15. What to submit</h2>
+<p>Fill <code>SUBMISSION.md</code> with your student details, repository link, version numbers, account eligibility, screenshots and measured test results. Use <code>Project_Submission.html</code> as a formatted report: open it in a browser and print to PDF after entering your actual results. Submit the source ZIP, completed report and evidence folder. Clearly list free-tier adaptations against the original brief: local DNS controller, no managed LBs, CLI credential stores rather than Vault, independent databases and backup/restore rather than continuous cross-engine replication, and local health monitoring rather than complete CPU/RAM/cost telemetry.</p>
+<h2>16. Official references and installation links</h2>
+<p>Account offers and pricing should be rechecked before deployment. Verified 22 October 2026.</p>
+<ul>
+<li>AWS Free Tier: <a href="https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier.html">https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier.html</a></li>
+<li>AWS EC2 free-tier eligibility: <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-free-tier-usage.html">https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-free-tier-usage.html</a></li>
+<li>Azure free services: <a href="https://azure.microsoft.com/en-us/pricing/free-services">https://azure.microsoft.com/en-us/pricing/free-services</a></li>
+<li>Azure SQL free offer: <a href="https://learn.microsoft.com/en-us/azure/azure-sql/database/free-offer?view=azuresql">https://learn.microsoft.com/en-us/azure/azure-sql/database/free-offer?view=azuresql</a></li>
+<li>GCP Free Tier: <a href="https://docs.cloud.google.com/free/docs/free-cloud-features">https://docs.cloud.google.com/free/docs/free-cloud-features</a></li>
+<li>GCP external IP pricing: <a href="https://cloud.google.com/vpc/network-pricing">https://cloud.google.com/vpc/network-pricing</a></li>
+<li>Cloudflare Load Balancing pricing: <a href="https://www.cloudflare.com/plans/">https://www.cloudflare.com/plans/</a></li>
+<li>Cloudflare DNS update API: <a href="https://developers.cloudflare.com/api/resources/dns/subresources/records/methods/edit/">https://developers.cloudflare.com/api/resources/dns/subresources/records/methods/edit/</a></li>
+<li>Terraform installation: <a href="https://developer.hashicorp.com/terraform/install">https://developer.hashicorp.com/terraform/install</a></li>
+<li>Docker Desktop on Windows: <a href="https://docs.docker.com/desktop/setup/install/windows-install/">https://docs.docker.com/desktop/setup/install/windows-install/</a></li>
+<li>Docker Engine on Ubuntu: <a href="https://docs.docker.com/engine/install/ubuntu/">https://docs.docker.com/engine/install/ubuntu/</a></li>
+<li>AWS CLI: <a href="https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html">https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html</a></li>
+<li>Azure CLI: <a href="https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows">https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows</a></li>
+<li>Google Cloud CLI: <a href="https://cloud.google.com/sdk/docs/install">https://cloud.google.com/sdk/docs/install</a></li>
+<li>Python: <a href="https://www.python.org/downloads/windows/">https://www.python.org/downloads/windows/</a></li>
+<li>Git: <a href="https://git-scm.com/downloads/win">https://git-scm.com/downloads/win</a></li>
+<li>PowerShell 7: <a href="https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows">https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows</a></li>
+<li>Prometheus multi-target probing: <a href="https://prometheus.io/docs/guides/multi-target-exporter/">https://prometheus.io/docs/guides/multi-target-exporter/</a></li>
+<li>PostgreSQL dump documentation: <a href="https://www.postgresql.org/docs/16/app-pgdump.html">https://www.postgresql.org/docs/16/app-pgdump.html</a></li>
+</ul></main><script>function saveCopy(){const data='<!DOCTYPE html>\n'+document.documentElement.outerHTML;const url=URL.createObjectURL(new Blob([data],{type:'text/html'}));const a=document.createElement('a');a.href=url;a.download='My_Project_Submission.html';a.click();URL.revokeObjectURL(url);}</script></body></html>

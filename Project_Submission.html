@@ -1,0 +1,121 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Project submission report</title><style>
+:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;background:#eef2f6;color:#172536;font:15px/1.6 "Segoe UI",Arial,sans-serif}.toolbar{position:sticky;top:0;background:#13283d;color:white;padding:12px 24px;display:flex;gap:12px;align-items:center;z-index:2;font-size:13px}.toolbar button{background:white;border:0;border-radius:4px;padding:8px 14px;cursor:pointer;color:#13283d}.toolbar span{margin-right:auto}main{max-width:1000px;margin:28px auto;padding:48px 58px;background:white;box-shadow:0 3px 22px #14293c16}h1{font-size:31px;line-height:1.2;color:#000;margin:0 0 28px}h2{font-size:21px;line-height:1.3;margin-top:35px;break-after:avoid}h3{font-size:17px;margin-top:24px;break-after:avoid}p{margin:12px 0}table{border-collapse:collapse;width:100%;font-size:13px;margin:18px 0;table-layout:fixed}th{background:#e9eff5;text-align:left}th,td{border:1px solid #ccd6df;padding:9px 11px;vertical-align:top;overflow-wrap:anywhere}tr{break-inside:avoid}a{color:#165b96;overflow-wrap:anywhere}pre{background:#f1f4f7;border:1px solid #dce3e9;border-radius:4px;padding:14px;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}code{font-family:Consolas,monospace;font-size:.9em}li{margin:6px 0}main[contenteditable=true]:focus{outline:2px solid #668aaa} @page{size:A4;margin:18mm} @media print{body{background:white;font-size:10.5pt;line-height:1.4}.toolbar{display:none}main{margin:0;max-width:none;padding:0;box-shadow:none}h1{font-size:25pt}h2{font-size:16pt}h3{font-size:12pt}table{font-size:8.5pt}pre{font-size:8pt}a{color:inherit;text-decoration:none}p{orphans:3;widows:3}}
+</style></head><body><div class="toolbar"><span>Edit the fields in brackets then save a copy or print to PDF.</span><button onclick="saveCopy()">Save edited report</button><button onclick="window.print()">Print or save PDF</button></div><main contenteditable="true"><h1>Multi Cloud Deployment and Management with Terraform</h1>
+<h2>Student and project details</h2>
+<p>Student name: [Enter name]<br>Registration number: [Enter number]<br>Department and institution: [Enter details]<br>Guide or supervisor: [Enter name]<br>Submission date: [Enter date]<br>Source repository: [Enter URL]<br>Demonstration video: [Enter URL if required]</p>
+<h2>Abstract</h2>
+<p>This project studies infrastructure deployment across Amazon Web Services, Microsoft Azure and Google Cloud using Terraform. Provider-specific modules define virtual machines, networks, access rules and private object storage. A common startup procedure installs a small Nginx website with an origin-specific health endpoint. Local Prometheus and Grafana configurations observe HTTP health and response time. A Python controller probes the origins and updates a Cloudflare DNS record to demonstrate active-passive recovery from a web-service outage.</p>
+<p>The design targets a student laboratory using eligible account allowances and trial credits. Managed load balancers and production database replication are outside the baseline. Optional database exercises use Amazon RDS PostgreSQL, Azure SQL and PostgreSQL in a GCP virtual machine. Backup and restore are tested separately from web routing, with actual measurements entered in the results section after execution.</p>
+<h2>Problem statement</h2>
+<p>Manual configuration across different cloud providers can create inconsistent networks, access controls and application deployments. Recovery procedures are difficult to repeat when infrastructure and application state are undocumented. The project investigates how reusable infrastructure definitions, explicit health probes and a recorded recovery procedure can make a small multi-cloud deployment easier to reproduce and assess.</p>
+<h2>Objectives</h2>
+<ol>
+<li>Define repeatable VM, networking and storage configurations for three cloud providers.</li>
+<li>Deploy a common demonstration webpage and identify the responding provider.</li>
+<li>Demonstrate application-service failover with direct health probes and a DNS update.</li>
+<li>Observe HTTP availability and latency locally and demonstrate a local alert.</li>
+<li>Demonstrate a PostgreSQL backup and verified restore with private backup copies.</li>
+<li>Record account eligibility, cost controls, results, limitations and cleanup evidence.</li>
+</ol>
+<h2>Proposed architecture</h2>
+<p>Cloudflare hosts a dedicated DNS-only A record. It points to one origin at a time, in AWS us-east-1, Azure East US or GCP us-central1. The local controller prefers AWS, then Azure, then GCP. Three consecutive failures are required before abandoning the active origin; three consecutive successes qualify a destination. A cooldown reduces frequent changes. Local blackbox probes supply Prometheus metrics, which Grafana displays. Private S3, Blob and Cloud Storage destinations hold small dummy backup files.</p>
+<p>The local machine is a dependency for monitoring and failover decisions. DNS changes are subject to caching and do not move existing connections. HTTP serves only a public demonstration page. Database engines are independent of the static webpage.</p>
+<h2>Technology and resource configuration</h2>
+<table><thead><tr><th>Layer</th><th>Configuration</th></tr></thead><tbody>
+<tr><td>Infrastructure</td><td>Terraform root configuration and separate AWS Azure and GCP modules</td></tr>
+<tr><td>AWS</td><td>Ubuntu t3.micro, 8 GB gp3 boot disk, VPC subnet route and internet gateway, private S3 bucket</td></tr>
+<tr><td>Azure</td><td>Ubuntu Standard_B1s, 30 GB Standard LRS OS disk, VNet subnet NSG NIC and Standard public IP, private Blob container</td></tr>
+<tr><td>GCP</td><td>Ubuntu e2-micro, 30 GB pd-standard disk, custom VPC subnet and firewall, regional Standard Cloud Storage bucket</td></tr>
+<tr><td>Application</td><td>Nginx static page and provider-specific health text</td></tr>
+<tr><td>Routing</td><td>Cloudflare free DNS and a local Python API controller</td></tr>
+<tr><td>Monitoring</td><td>Prometheus blackbox exporter and Grafana on the workstation</td></tr>
+<tr><td>Optional databases</td><td>RDS PostgreSQL Azure SQL free offer and PostgreSQL Docker on GCP</td></tr>
+<tr><td>Version control</td><td>Git and GitHub Actions formatting and configuration validation</td></tr>
+</tbody></table>
+<p>Record installed tool versions and resolved provider versions here: [Enter actual versions]. Commit the provider lock file. Public images and cloud image versions should be recorded alongside test evidence because image families can change.</p>
+<h2>Relationship to the original project brief</h2>
+<table><thead><tr><th>Original requirement</th><th>Student lab adaptation</th><th>Completion evidence</th></tr></thead><tbody>
+<tr><td>Terraform deployment across three clouds</td><td>Three provider modules for web infrastructure and storage</td><td>[Plan apply outputs and console screenshots]</td></tr>
+<tr><td>Load balancing and automatic failover</td><td>Active-passive DNS controller; no managed traffic balancing</td><td>[Outage logs and DNS changes]</td></tr>
+<tr><td>Vault or similar credential handling</td><td>Local CLI credential stores and short-lived sessions; Vault not implemented</td><td>[Redacted identity verification]</td></tr>
+<tr><td>Database replication and disaster recovery</td><td>Same-engine backup and restore exercise; no PostgreSQL to Azure SQL replication</td><td>[Dump checksum and restored row evidence]</td></tr>
+<tr><td>Monitoring usage alerts and costs</td><td>HTTP health and latency plus local alert; provider consoles for cost review</td><td>[Dashboards local alert and billing views]</td></tr>
+<tr><td>Deployment automation and CI</td><td>Startup scripts and validation-only workflow; apply is manually reviewed</td><td>[Workflow result and apply evidence]</td></tr>
+<tr><td>Production readiness</td><td>Educational prototype requiring further engineering</td><td>[Documented limitations]</td></tr>
+</tbody></table>
+<p>Obtain the evaluator&#x27;s acceptance of these cost-driven scope adaptations. If managed load balancing, Vault, continuous replication, CPU/RAM monitoring, external notifications or CI apply are mandatory, implement and demonstrate them separately before claiming completion.</p>
+<h2>Implementation methodology</h2>
+<h3>Phase 1 Workstation and cloud access</h3>
+<p>Install the required command-line tools and Docker Desktop. Enable MFA, choose dedicated project resources and inspect account offers. Authenticate each CLI without storing credentials in source files. Generate a passphrase-protected SSH key and restrict SSH access to the workstation&#x27;s current public IP. Initialize the repository and review ignore rules.</p>
+<h3>Phase 2 Infrastructure and application</h3>
+<p>Set the unique resource prefix, subscription and project identifiers and SSH key path. Run formatting, initialization, validation and plan review. Check the price of every resource, including external IPs and disks. Apply the reviewed plan and wait for startup scripts. Verify the provider-specific webpage and health endpoint for every VM. Record startup failures and corrective actions where applicable.</p>
+<h3>Phase 3 DNS routing</h3>
+<p>Create the dedicated DNS-only A record and a scoped Cloudflare API token. Configure direct origin addresses in the controller. Run a dry demonstration before enabling API writes. Check the actual record and origin webpage. Run one controller and keep the workstation awake throughout testing.</p>
+<h3>Phase 4 Monitoring</h3>
+<p>Replace the monitoring IP placeholders and start the local containers. Confirm successful probes, configure the Grafana Prometheus data source and add health and latency panels. Trigger an application outage and observe the local alert. External notification delivery and billing metrics are not part of the baseline configuration.</p>
+<h3>Phase 5 Data recovery</h3>
+<p>Create a tiny dummy PostgreSQL table, record its rows and take a custom-format dump. Save the checksum and copy the backup to private object storage. Download a copy, verify its checksum and restore into a fresh PostgreSQL database. Compare restored contents with the source. Report separately whether the restore destination was local to the source or in a different cloud.</p>
+<h3>Phase 6 Testing documentation and cleanup</h3>
+<p>Perform controlled service outages with timestamps. Restore each service, observe failback and collect evidence. Update the report with actual results. Delete optional databases and dummy backup objects before destroying managed infrastructure. Remove test DNS, revoke the API token and confirm that no unintended resources remain.</p>
+<h2>Security controls</h2>
+<p>The baseline uses MFA-enabled accounts, local authenticated CLI sessions, passphrase-protected SSH keys, a workstation-only SSH ingress rule, private object storage, required AWS IMDSv2 and localhost-only monitoring ports. Database ports remain closed to the public internet. The optional RDS security group permits only the EC2 application security group; the optional Azure SQL exercise permits only the required source IP.</p>
+<p>Terraform state, plans, tokens, key files and secret variable files must remain private. Redact secrets and identifying account information in screenshots. HTTP is limited to dummy demonstration content. Production work would require secured origin TLS, a stronger controller deployment, locked encrypted remote state, more precise IAM and a managed secret lifecycle.</p>
+<h2>Test plan and recorded results</h2>
+<p>The following are acceptance criteria. Enter measurements only after executing each test; blank cells do not indicate success.</p>
+<table><thead><tr><th>ID</th><th>Test and expected observation</th><th>Actual result and evidence</th></tr></thead><tbody>
+<tr><td>T01</td><td>Formatting and provider validation complete successfully</td><td>[Enter result versions and log]</td></tr>
+<tr><td>T02</td><td>All three direct health endpoints return the correct provider</td><td>[Enter response and screenshot]</td></tr>
+<tr><td>T03</td><td>Baseline DNS points to AWS and webpage identifies AWS</td><td>[Enter DNS evidence]</td></tr>
+<tr><td>T04</td><td>Stop AWS Nginx and observe Azure selection</td><td>[Start time switch time elapsed and evidence]</td></tr>
+<tr><td>T05</td><td>Stop Azure Nginx while AWS is down and observe GCP selection</td><td>[Start time switch time elapsed and evidence]</td></tr>
+<tr><td>T06</td><td>Restore AWS and observe preferred-primary failback</td><td>[Health confirmation change time and evidence]</td></tr>
+<tr><td>T07</td><td>All origins unhealthy causes no new DNS destination selection</td><td>[Log and existing DNS record]</td></tr>
+<tr><td>T08</td><td>Local health metric becomes zero and alert fires during outage</td><td>[Dashboard and alert screenshot]</td></tr>
+<tr><td>T09</td><td>Downloaded backup checksum matches source backup</td><td>[Checksum and location]</td></tr>
+<tr><td>T10</td><td>Restore to empty PostgreSQL database preserves expected rows</td><td>[Rows count and duration]</td></tr>
+<tr><td>T11</td><td>Repository CI checks pass without cloud credentials</td><td>[Workflow URL]</td></tr>
+<tr><td>T12</td><td>Cloud resources and test DNS are cleaned up</td><td>[Console and billing review]</td></tr>
+</tbody></table>
+<h2>Recovery measurements</h2>
+<p>Failure simulation: [Application service stopped on provider and exact UTC time].<br>Confirmed service recovery: [Provider and exact UTC time].<br>Measured web recovery time: [Seconds and measurement method].<br>Latest usable backup time: [UTC time].<br>Data recovery point objective observation: [Failure time minus latest usable backup time].<br>Data restore completion time: [UTC time and validation performed].<br>Measured data recovery duration: [Seconds or minutes].<br>Recovery destination: [Cloud provider database and version].</p>
+<p>Report application DNS recovery separately from data recovery. Probe timing plus TTL is an estimate, not an observed guarantee. A same-VM restore demonstrates the backup procedure but does not by itself demonstrate disaster recovery after a provider outage.</p>
+<h2>Cost review</h2>
+<table><thead><tr><th>Provider</th><th>Offer and expiry</th><th>Planned covered usage</th><th>Uncovered items</th><th>Actual spend after test</th></tr></thead><tbody>
+<tr><td>AWS</td><td>[Enter]</td><td>[Enter]</td><td>[IP storage DB transfer]</td><td>[Enter]</td></tr>
+<tr><td>Azure</td><td>[Enter]</td><td>[Enter]</td><td>[IP disk SQL operations]</td><td>[Enter]</td></tr>
+<tr><td>GCP</td><td>[Enter]</td><td>[Enter]</td><td>[External IPv4 transfer]</td><td>[Enter]</td></tr>
+<tr><td>Cloudflare</td><td>Free DNS</td><td>DNS</td><td>[Domain registration if applicable]</td><td>[Enter]</td></tr>
+</tbody></table>
+<p>Eligible allowances and credits are account-specific. The architecture must not be described as permanently free. Budget notifications do not guarantee that charges are blocked. Include screenshots showing remaining credit and resource deletion without exposing payment details.</p>
+<h2>Sprint schedule</h2>
+<table><thead><tr><th>Sprint</th><th>Planned workload</th><th>Output</th></tr></thead><tbody>
+<tr><td>1</td><td>20 hours</td><td>Repository tools accounts access and secret handling</td></tr>
+<tr><td>2</td><td>20 hours</td><td>Terraform networks VMs storage and common webpage</td></tr>
+<tr><td>3</td><td>20 hours</td><td>Cloudflare record controller and outage demonstration</td></tr>
+<tr><td>4</td><td>20 hours</td><td>Optional database and verified backup restore</td></tr>
+<tr><td>5</td><td>20 hours</td><td>Local dashboards alert and cost review</td></tr>
+<tr><td>6</td><td>20 hours</td><td>Validation workflow test evidence report and cleanup</td></tr>
+</tbody></table>
+<p>Total planned effort is 120 hours, matching the six-sprint brief. Record actual effort separately if required by the institution.</p>
+<h2>Limitations and future work</h2>
+<p>The system has one VM per cloud, a local decision-maker and DNS caching delays. It has no within-cloud autoscaling or managed load balancing. The static website is independent of databases. It does not provide continuous cross-cloud database replication, transaction consistency or automated database promotion. Local HTTP probing does not provide full VM performance or cost telemetry. Optional manual database resources are not fully managed by the supplied Terraform state.</p>
+<p>Future work includes approved managed health-based routing, remote controller supervision, origin TLS, same-engine database replication with explicit consistency and promotion rules, encrypted locked remote state, OIDC-based deployment workflows, private monitoring, external alert delivery and measured recovery under more realistic failure conditions.</p>
+<h2>Conclusion</h2>
+<p>The proposed laboratory provides a repeatable framework for deploying and observing web infrastructure across three cloud providers. Its evaluation depends on measured deployment, outage and restore evidence. After testing, summarize the observed recovery behavior, actual cost and remaining gaps here: [Enter the conclusion supported by your results].</p>
+<h2>Evidence index</h2>
+<p>E01 Tool versions and redacted identity checks<br>E02 Terraform plan and apply summary<br>E03 Three provider resource views<br>E04 Three direct health responses<br>E05 DNS record baseline and changes<br>E06 Controller timestamps<br>E07 Grafana dashboard and Prometheus alert<br>E08 Database source data backup checksum and restored data<br>E09 CI workflow result<br>E10 Budget eligibility actual spend and cleanup proof</p>
+<p>Store these in an <code>evidence/</code> folder with matching labels. Include no tokens, private keys, database passwords or payment details.</p>
+<h2>References</h2>
+<p>Official sources consulted on 22 October 2026. Recheck offers before execution.</p>
+<ol>
+<li>AWS Free Tier: <a href="https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier.html">https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier.html</a></li>
+<li>AWS EC2 eligibility: <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-free-tier-usage.html">https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-free-tier-usage.html</a></li>
+<li>Azure free services: <a href="https://azure.microsoft.com/en-us/pricing/free-services">https://azure.microsoft.com/en-us/pricing/free-services</a></li>
+<li>Azure SQL free offer: <a href="https://learn.microsoft.com/en-us/azure/azure-sql/database/free-offer?view=azuresql">https://learn.microsoft.com/en-us/azure/azure-sql/database/free-offer?view=azuresql</a></li>
+<li>GCP Free Tier: <a href="https://docs.cloud.google.com/free/docs/free-cloud-features">https://docs.cloud.google.com/free/docs/free-cloud-features</a></li>
+<li>GCP network pricing: <a href="https://cloud.google.com/vpc/network-pricing">https://cloud.google.com/vpc/network-pricing</a></li>
+<li>Cloudflare plans: <a href="https://www.cloudflare.com/plans/">https://www.cloudflare.com/plans/</a></li>
+<li>Cloudflare DNS API: <a href="https://developers.cloudflare.com/api/resources/dns/subresources/records/methods/edit/">https://developers.cloudflare.com/api/resources/dns/subresources/records/methods/edit/</a></li>
+<li>Terraform installation: <a href="https://developer.hashicorp.com/terraform/install">https://developer.hashicorp.com/terraform/install</a></li>
+<li>Prometheus multi-target exporter: <a href="https://prometheus.io/docs/guides/multi-target-exporter/">https://prometheus.io/docs/guides/multi-target-exporter/</a></li>
+</ol></main><script>function saveCopy(){const data='<!DOCTYPE html>\n'+document.documentElement.outerHTML;const url=URL.createObjectURL(new Blob([data],{type:'text/html'}));const a=document.createElement('a');a.href=url;a.download='My_Project_Submission.html';a.click();URL.revokeObjectURL(url);}</script></body></html>

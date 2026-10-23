@@ -1,0 +1,9 @@
+.terraform/
+*.tfstate*
+*.tfplan
+terraform.tfvars
+.env
+*.pem
+*.key
+failover-state.json
+backups/
