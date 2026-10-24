@@ -1,0 +1,16 @@
+services:
+  postgres-dr:
+    image: postgres:16
+    container_name: postgres-dr
+    restart: unless-stopped
+    mem_limit: 256m
+    ports:
+      - "127.0.0.1:5433:5432"
+    environment:
+      POSTGRES_USER: dradmin
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: ${DR_POSTGRES_PASSWORD:?Set DR_POSTGRES_PASSWORD}
+    volumes:
+      - dr-pgdata:/var/lib/postgresql/data
+volumes:
+  dr-pgdata:

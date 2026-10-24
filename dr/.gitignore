@@ -1,0 +1,7 @@
+dr.env
+backups/
+recovered/
+logs/
+.backup.lock
+last-successful-run.txt
+.env
