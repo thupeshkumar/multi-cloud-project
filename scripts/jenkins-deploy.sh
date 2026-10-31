@@ -14,7 +14,7 @@ while read -r cloud user ip extra; do
   }
   host="$user@$ip"
   echo "Preflight $cloud"
-  ssh "${SSH_OPTS[@]}" "$host" 'sudo -n nginx -t'
+  ssh -n "${SSH_OPTS[@]}" "$host" 'sudo -n nginx -t'
 done < jenkins/targets.txt
 
 while read -r cloud user ip extra; do
@@ -23,11 +23,11 @@ while read -r cloud user ip extra; do
   mkdir -p "deployment-evidence/$cloud"
   sed -e "s/{{CLOUD}}/$cloud/g" -e "s/{{REVISION}}/$REVISION/g" app/index.html.template > "deployment-evidence/$cloud/index.html"
   printf 'healthy %s\n' "$cloud" > "deployment-evidence/$cloud/health"
-  STAGING="$(ssh "${SSH_OPTS[@]}" "$host" 'umask 077; mktemp -d /tmp/multicloud-jenkins.XXXXXXXX')"
+  STAGING="$(ssh -n "${SSH_OPTS[@]}" "$host" 'umask 077; mktemp -d /tmp/multicloud-jenkins.XXXXXXXX')"
   [[ "$STAGING" =~ ^/tmp/multicloud-jenkins\.[a-zA-Z0-9]+$ ]] || { echo 'Unexpected staging path' >&2; exit 1; }
   scp "${SSH_OPTS[@]}" "deployment-evidence/$cloud/index.html" "deployment-evidence/$cloud/health" "$host:$STAGING/"
-  ssh "${SSH_OPTS[@]}" "$host" \
-    "set -e; sudo -n install -m 0644 '$STAGING/index.html' '/var/www/html/.index-$REVISION.html'; sudo -n install -m 0644 '$STAGING/health' '/var/www/html/.health-$REVISION'; sudo -n mv '/var/www/html/.index-$REVISION.html' /var/www/html/index.html; sudo -n mv '/var/www/html/.health-$REVISION' /var/www/html/health"
+  ssh -n "${SSH_OPTS[@]}" "$host" \
+    "set -e; sudo -n install -m 0644 '\$STAGING/index.html' '/var/www/html/.index-\$REVISION.html'; sudo -n install -m 0644 '\$STAGING/health' '/var/www/html/.health-\$REVISION'; sudo -n mv '/var/www/html/.index-\$REVISION.html' /var/www/html/index.html; sudo -n mv '/var/www/html/.health-\$REVISION' /var/www/html/health"
   # Verify the actual content on the public origin, independently of shared DNS.
   curl --fail --silent --show-error --max-time 15 "http://$ip/health" > "deployment-evidence/$cloud/actual-health"
   cmp "deployment-evidence/$cloud/health" "deployment-evidence/$cloud/actual-health"
