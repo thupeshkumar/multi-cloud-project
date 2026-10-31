@@ -1,0 +1,1981 @@
+{
+  "currency": "USD",
+  "summary": {
+    "projects": 1,
+    "resources": 26,
+    "costed_resources": 9,
+    "free_resources": 17,
+    "total_monthly_cost": "79.424792075",
+    "total_potential_yearly_savings": "17.52",
+    "finops_policies": 17,
+    "failing_finops_policies": 9,
+    "distinct_failing_finops_resources": 4,
+    "tagging_policies": 1,
+    "failing_tagging_policies": 1,
+    "distinct_failing_tagging_resources": 18
+  },
+  "projects": [
+    {
+      "project_name": "main",
+      "path": ".",
+      "finops_results": [
+        {
+          "policy_id": "2e0b15ee-1610-4d7d-81bb-e732ce8a60df",
+          "policy_name": "S3 - consider deleting incomplete multi-part uploads",
+          "policy_slug": "aws-delete-multi-part-uploads-s3-lifecycle-configuration",
+          "policy_message": "When S3 uploads fail, the incomplete multi-part data still lives in S3 and costs money even though it's not a usable S3 object. You can avoid paying for that by setting the number of days after which these are deleted. We suggest 7 days.",
+          "failing_resources": [
+            {
+              "name": "module.aws.aws_s3_bucket.lab",
+              "issues": [
+                {
+                  "description": "Add a lifecycle rule which specifies a configuration to abort incomplete multipart uploads",
+                  "yearly_savings": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "address": "module.aws.aws_s3_bucket.lab"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "policy_id": "4c891b66-fe01-4757-a0ef-0d206a00a76c",
+          "policy_name": "S3 - consider deleting or moving non-current object versions to a cheaper storage class",
+          "policy_slug": "aws-delete-non-current-object-versions-s3-lifecycle-configuration",
+          "policy_message": "S3 can store multiple versions of the same object. However, most of the time, you only need the current version. So you could set the number of days after which non-current objects are deleted. Ensure that you do not need non-current object versions first.",
+          "failing_resources": []
+        },
+        {
+          "policy_id": "cda2d006-9780-4502-8b36-ad5f05e4a39f",
+          "policy_name": "[EC2.9, EC2.25] Amazon EC2 and launch templates should not associate a public IPv4 address",
+          "policy_slug": "aws-ec2-disable-associate-public-ipv4",
+          "policy_message": "EC2 instances and launch templates should not have a public IPv4 address to reduce attack surface and prevent direct internet exposure. Use NAT gateways for outbound connectivity and AWS Systems Manager Session Manager for secure instance access. Corresponds to AWS Security Hub control EC2.9 and EC2.25.",
+          "failing_resources": [
+            {
+              "name": "module.aws.aws_instance.lab",
+              "issues": [
+                {
+                  "description": "Consider disabling `associate_public_ip_address`. Set it to `false` and use NAT gateways for outbound connectivity.",
+                  "yearly_savings": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "address": "module.aws.aws_instance.lab",
+                  "attribute": "associate_public_ip_address"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "policy_id": "a3bc9dff-ffd1-43df-af0b-6aa37b2ea0ab",
+          "policy_name": "EC2 - require Instance Metadata Service Version 2 (IMDSv2)",
+          "policy_slug": "aws-ec2-use-imdsv2",
+          "policy_message": "Consider using IMDSv2 for EC2 instances to provide enhanced security protections against multiple vulnerability classes. Corresponds to AWS Security Hub control EC2.8.",
+          "failing_resources": []
+        },
+        {
+          "policy_id": "beabf282-094b-4255-bc96-13d7a73b345d",
+          "policy_name": "S3 - consider using Intelligent-Tiering or adding a lifecycle policy",
+          "policy_slug": "aws-ensure-transition-rules-defined-s3-lifecycle-configuration",
+          "policy_message": "Use a lifecycle policy to reduce object storage costs. You can reduce storage costs by defining policies that remove or move objects to a less expensive S3 storage class. For example, a bucket storing 1TB of data in a standard storage class would have a monthly cost of $23. If the same data was moved to Glacier Flexible Retrieval storage class it would have a monthly cost of just $3.60. That's a 84% cost saving.",
+          "failing_resources": [
+            {
+              "name": "module.aws.aws_s3_bucket.lab",
+              "issues": [
+                {
+                  "description": "Add a lifecycle rule which specifies a transition or expiration configuration",
+                  "yearly_savings": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "address": "module.aws.aws_s3_bucket.lab"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "policy_id": "f33d57fa-38e5-4a2a-8939-6d7eaebd1810",
+          "policy_name": "EBS - consider upgrading gp2 volumes to gp3",
+          "policy_slug": "aws-gp2-to-gp3",
+          "policy_message": "gp3 volumes are the latest generation of general-purpose SSD-based EBS volumes that enable you to provision performance independent of storage capacity, while providing up to **20% lower price per GB** than existing gp2 volumes. With gp3 volumes, you can scale IOPS (input/output operations per second) and throughput without needing to provision additional block storage capacity. This means you only pay for the storage you need.",
+          "failing_resources": []
+        },
+        {
+          "policy_id": "4fdcc1d5-86e9-4a3c-955a-573c02638275",
+          "policy_name": "EBS - consider updating io1/io2 volumes to gp3",
+          "policy_slug": "aws-io1-io2-to-gp3",
+          "policy_message": "io1 and io2 volume types that need less than 16K IOPS, and less than 1000 MB/s Throughput, and don’t use Multi-Attach should be switched to gp3 as that is **at least 2X cheaper**. For example, a gp3 volume with 16TB storage, 16K IOPS and 1000 MB/s Throughput costs $1.4K/month vs $3K/month on io1 or io2.",
+          "failing_resources": []
+        },
+        {
+          "policy_id": "6d5e1273-b181-4055-a0c4-d1f85f33b8ae",
+          "policy_name": "[S3.5] S3 buckets should require requests to use SSL",
+          "policy_slug": "aws-s3-bucket-ssl-requests-only",
+          "policy_message": "S3 buckets should have a bucket policy that denies non-SSL (HTTP) requests. Without this policy, data in transit is not protected from interception. Add a bucket policy with a Deny statement for requests where aws:SecureTransport is false.",
+          "failing_resources": [
+            {
+              "name": "module.aws.aws_s3_bucket.lab",
+              "issues": [
+                {
+                  "description": "Attach a bucket policy with a `Deny` statement for requests where `aws:SecureTransport` is `false`, so non-SSL requests are rejected.",
+                  "yearly_savings": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "address": "module.aws.aws_s3_bucket.lab",
+                  "attribute": "bucket"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "policy_id": "2dcb5ef4-aea6-4681-90d7-ce20fd88173b",
+          "policy_name": "EC2 - consider using Graviton instances",
+          "policy_slug": "aws-use-graviton-ec2-instance",
+          "policy_message": "Graviton instances are around 20% cheaper than equivalent x86 instances.",
+          "failing_resources": [
+            {
+              "name": "module.aws.aws_instance.lab",
+              "issues": [
+                {
+                  "description": "Switch `instance_type` from `t3.micro` to `t4g.micro`",
+                  "yearly_savings": "17.52",
+                  "monthly_carbon_savings_grams_co2e": "-29.760851699999947",
+                  "monthly_water_savings_liters": "1.2538188",
+                  "address": "module.aws.aws_instance.lab",
+                  "attribute": "instance_type"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "policy_id": "0eae5b1f-137a-4707-a284-f39fc6f73707",
+          "policy_name": "EC2 - consider using latest generation instances for t family instances",
+          "policy_slug": "aws-use-latest-generation-t-family-policy",
+          "policy_message": "Upgrade to Amazon EC2 t3 instances for improved Intel Xeon Processors, AWS Nitro System and EBS optimization by default, all at lower price point than previous generations. For example a `t2.medium` instance with 4 GiB of memory and 2 vCPUs (for a 4h 48m burst) has a monthly cost of $33. Whereas a `t3.medium` instance with equivalent machine specs costs just $30. That's a 10% cost saving for a more performant machine.",
+          "failing_resources": []
+        },
+        {
+          "policy_id": "d5b7e44a-c5d1-438b-84fe-9a349d03e1dc",
+          "policy_name": "Storage Account - consider disabling public network access",
+          "policy_slug": "azure-storage-account-disable-public-network-access",
+          "policy_message": "Storage accounts should disable public network access to prevent direct internet exposure and improve security posture. Restrict access to private endpoints and virtual networks only.",
+          "failing_resources": [
+            {
+              "name": "module.azure.azurerm_storage_account.lab",
+              "issues": [
+                {
+                  "description": "Set `public_network_access_enabled` to `false` to prevent direct internet exposure and improve security posture.",
+                  "yearly_savings": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "address": "module.azure.azurerm_storage_account.lab",
+                  "attribute": "public_network_access_enabled"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "policy_id": "97a919e4-c650-4763-8c11-b14017fe8d43",
+          "policy_name": "Storage Accounts - consider using a lifecycle policy for blob storage",
+          "policy_slug": "azure-use-storage-account-lifecycle-policy",
+          "policy_message": "A lifecycle policy should be defined for Azure blob storage accounts to automate the transition of your data based on its usage pattern to optimize storage costs, improve performance, or to delete blobs that are no longer needed.",
+          "failing_resources": [
+            {
+              "name": "module.azure.azurerm_storage_account.lab",
+              "issues": [
+                {
+                  "description": "Set `blob_properties[0].last_access_time_enabled` to `true` to take advantage of access time tracking",
+                  "yearly_savings": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "address": "module.azure.azurerm_storage_account.lab",
+                  "attribute": "blob_properties[0].last_access_time_enabled"
+                },
+                {
+                  "description": "Attach a storage management policy to this storage account to take advantage of lifecycle policies",
+                  "yearly_savings": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "address": "module.azure.azurerm_storage_account.lab"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "policy_id": "282dc9a1-90c5-4d5c-9a81-a00ee7bfe586",
+          "policy_name": "Storage Accounts - consider upgrading account kind to StorageV2",
+          "policy_slug": "azure-use-storage-account-v2-storage-policy",
+          "policy_message": "Azure recommends general-purpose v2 accounts for most storage scenarios. v2 accounts incorporate all of the functionality of general-purpose v1 and Blob storage accounts, and have the latest features such as lifecycle management and access tiers.",
+          "failing_resources": []
+        },
+        {
+          "policy_id": "32808914-1f07-4eef-84cf-ace04bddbb69",
+          "policy_name": "Compute - consider using current generation machine types",
+          "policy_slug": "google-compute-use-latest-machine-types",
+          "policy_message": "N1s are first-generation general purpose VMs. For most use-cases (excluding GPU workloads), Google recommends one of their second-generation types such as:\n\n- **E2** offers the lowest total cost of ownership with up to 31% savings compared to N1.\n- **N2** uses 2nd Gen Intel Xeon Scalable Processors (Cascade Lake) and offers a greater than 20% price-performance improvement for many workloads and support up to 25% more memory per vCPU.\n- **N2D** uses latest 2nd Gen AMD EPYC (Rome) CPUs, and support the highest core count and memory of any general-purpose Compute Engine VM.",
+          "failing_resources": []
+        },
+        {
+          "policy_id": "52a5bc43-2093-4061-bf33-c0c1a801ea61",
+          "policy_name": "Cloud Storage - consider deleting incomplete multipart uploads",
+          "policy_slug": "google-delete-incomplete-multipart-uploads-storage-bucket-lifecycle",
+          "policy_message": "When Cloud Storage uploads fail, the incomplete multipart data still lives in the bucket and costs money even though it's not a usable object. Add a lifecycle rule to abort incomplete multipart uploads after a set number of days (suggest 7 days).",
+          "failing_resources": [
+            {
+              "name": "module.gcp.google_storage_bucket.lab",
+              "issues": [
+                {
+                  "description": "Add a lifecycle rule with an `AbortIncompleteMultipartUpload` action to clean up incomplete uploads",
+                  "yearly_savings": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "address": "module.gcp.google_storage_bucket.lab"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "policy_id": "784106cd-f060-44d0-bd8f-9a4a68ab54fb",
+          "policy_name": "Cloud Storage - consider deleting non-current object versions",
+          "policy_slug": "google-delete-noncurrent-object-versions-storage-bucket-lifecycle",
+          "policy_message": "Cloud Storage can store multiple versions of the same object when versioning is enabled. Use lifecycle rules to automatically delete non-current versions based on age or version count to reduce storage costs.",
+          "failing_resources": []
+        },
+        {
+          "policy_id": "090b4c32-cc47-4c04-a748-ac38277f734b",
+          "policy_name": "Cloud Storage - consider adding lifecycle rules to transition or expire objects",
+          "policy_slug": "google-ensure-transition-rules-storage-bucket-lifecycle",
+          "policy_message": "Use lifecycle rules to reduce object storage costs. You can define rules that delete objects or move them to a cheaper storage class based on age or other conditions.",
+          "failing_resources": [
+            {
+              "name": "module.gcp.google_storage_bucket.lab",
+              "issues": [
+                {
+                  "description": "Add a lifecycle rule with a `SetStorageClass` or `Delete` action to define object lifecycle transitions",
+                  "yearly_savings": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "address": "module.gcp.google_storage_bucket.lab"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "tagging_results": [
+        {
+          "policy_id": "9c19f09d-a562-48f3-a6c7-fb4e6b0c5e26",
+          "policy_name": "FinOps tags",
+          "message": "This example Tagging policy shows how you can enforce required FinOps tag keys/values in pull requests. This example checks for the tags 'Service' (can have any value) and 'Environment' (must be Dev/Stage/Prod) on all taggable resources being changed in the pull request. You can adjust it from https://dashboard.infracost.io \u003e Governance \u003e Tagging policies. You have a 14 day trial of this feature as it's part of Infracost Cloud.",
+          "tag_schema": [
+            {
+              "key": "Environment",
+              "valid_values": [
+                "Dev",
+                "Prod",
+                "Stage"
+              ],
+              "mandatory": true
+            },
+            {
+              "key": "Service",
+              "mandatory": true
+            }
+          ],
+          "failing_resources": [
+            {
+              "address": "module.azure.azurerm_network_interface.lab",
+              "resource_type": "azurerm_network_interface",
+              "invalid_tags": [
+                {
+                  "key": "Environment",
+                  "value": ""
+                }
+              ],
+              "path": "modules/azure/main.tf",
+              "line": 61,
+              "missing_mandatory_tags": [
+                "Service"
+              ],
+              "propagation_problems": []
+            },
+            {
+              "address": "module.azure.azurerm_network_security_group.lab",
+              "resource_type": "azurerm_network_security_group",
+              "invalid_tags": [
+                {
+                  "key": "Environment",
+                  "value": ""
+                }
+              ],
+              "path": "modules/azure/main.tf",
+              "line": 34,
+              "missing_mandatory_tags": [
+                "Service"
+              ],
+              "propagation_problems": []
+            },
+            {
+              "address": "module.azure.azurerm_resource_group.lab",
+              "resource_type": "azurerm_resource_group",
+              "invalid_tags": [
+                {
+                  "key": "Environment",
+                  "value": ""
+                }
+              ],
+              "path": "modules/azure/main.tf",
+              "line": 11,
+              "missing_mandatory_tags": [
+                "Service"
+              ],
+              "propagation_problems": []
+            },
+            {
+              "address": "module.aws.aws_internet_gateway.lab",
+              "resource_type": "aws_internet_gateway",
+              "invalid_tags": [
+                {
+                  "key": "Environment",
+                  "value": ""
+                }
+              ],
+              "path": "modules/aws/main.tf",
+              "line": 33,
+              "missing_mandatory_tags": [
+                "Service"
+              ],
+              "propagation_problems": []
+            },
+            {
+              "address": "module.aws.aws_key_pair.lab",
+              "resource_type": "aws_key_pair",
+              "invalid_tags": [
+                {
+                  "key": "Environment",
+                  "value": ""
+                }
+              ],
+              "path": "modules/aws/main.tf",
+              "line": 67,
+              "missing_mandatory_tags": [
+                "Service"
+              ],
+              "propagation_problems": []
+            },
+            {
+              "address": "module.aws.aws_route_table.lab",
+              "resource_type": "aws_route_table",
+              "invalid_tags": [
+                {
+                  "key": "Environment",
+                  "value": ""
+                }
+              ],
+              "path": "modules/aws/main.tf",
+              "line": 34,
+              "missing_mandatory_tags": [
+                "Service"
+              ],
+              "propagation_problems": []
+            },
+            {
+              "address": "module.aws.aws_security_group.lab",
+              "resource_type": "aws_security_group",
+              "invalid_tags": [
+                {
+                  "key": "Environment",
+                  "value": ""
+                }
+              ],
+              "path": "modules/aws/main.tf",
+              "line": 45,
+              "missing_mandatory_tags": [
+                "Service"
+              ],
+              "propagation_problems": []
+            },
+            {
+              "address": "module.aws.aws_instance.lab",
+              "resource_type": "aws_instance",
+              "invalid_tags": [
+                {
+                  "key": "Environment",
+                  "value": ""
+                }
+              ],
+              "path": "modules/aws/main.tf",
+              "line": 71,
+              "missing_mandatory_tags": [
+                "Service"
+              ],
+              "propagation_problems": []
+            },
+            {
+              "address": "module.aws.aws_instance.lab.root_block_device",
+              "resource_type": "aws_instance",
+              "invalid_tags": [
+                {
+                  "key": "Environment",
+                  "value": ""
+                }
+              ],
+              "path": "modules/aws/main.tf",
+              "line": 71,
+              "missing_mandatory_tags": [
+                "Service"
+              ],
+              "propagation_problems": []
+            },
+            {
+              "address": "module.aws.aws_subnet.lab",
+              "resource_type": "aws_subnet",
+              "invalid_tags": [
+                {
+                  "key": "Environment",
+                  "value": ""
+                }
+              ],
+              "path": "modules/aws/main.tf",
+              "line": 28,
+              "missing_mandatory_tags": [
+                "Service"
+              ],
+              "propagation_problems": []
+            },
+            {
+              "address": "module.aws.aws_vpc.lab",
+              "resource_type": "aws_vpc",
+              "invalid_tags": [
+                {
+                  "key": "Environment",
+                  "value": ""
+                }
+              ],
+              "path": "modules/aws/main.tf",
+              "line": 23,
+              "missing_mandatory_tags": [
+                "Service"
+              ],
+              "propagation_problems": []
+            },
+            {
+              "address": "module.aws.aws_s3_bucket.lab",
+              "resource_type": "aws_s3_bucket",
+              "invalid_tags": [
+                {
+                  "key": "Environment",
+                  "value": ""
+                }
+              ],
+              "path": "modules/aws/main.tf",
+              "line": 90,
+              "missing_mandatory_tags": [
+                "Service"
+              ],
+              "propagation_problems": []
+            },
+            {
+              "address": "module.azure.azurerm_linux_virtual_machine.lab",
+              "resource_type": "azurerm_linux_virtual_machine",
+              "invalid_tags": [
+                {
+                  "key": "Environment",
+                  "value": ""
+                }
+              ],
+              "path": "modules/azure/main.tf",
+              "line": 76,
+              "missing_mandatory_tags": [
+                "Service"
+              ],
+              "propagation_problems": []
+            },
+            {
+              "address": "module.azure.azurerm_public_ip.lab",
+              "resource_type": "azurerm_public_ip",
+              "invalid_tags": [
+                {
+                  "key": "Environment",
+                  "value": ""
+                }
+              ],
+              "path": "modules/azure/main.tf",
+              "line": 27,
+              "missing_mandatory_tags": [
+                "Service"
+              ],
+              "propagation_problems": []
+            },
+            {
+              "address": "module.azure.azurerm_virtual_network.lab",
+              "resource_type": "azurerm_virtual_network",
+              "invalid_tags": [
+                {
+                  "key": "Environment",
+                  "value": ""
+                }
+              ],
+              "path": "modules/azure/main.tf",
+              "line": 15,
+              "missing_mandatory_tags": [
+                "Service"
+              ],
+              "propagation_problems": []
+            },
+            {
+              "address": "module.azure.azurerm_storage_account.lab",
+              "resource_type": "azurerm_storage_account",
+              "invalid_tags": [
+                {
+                  "key": "Environment",
+                  "value": ""
+                }
+              ],
+              "path": "modules/azure/main.tf",
+              "line": 101,
+              "missing_mandatory_tags": [
+                "Service"
+              ],
+              "propagation_problems": []
+            },
+            {
+              "address": "module.gcp.google_compute_instance.lab",
+              "resource_type": "google_compute_instance",
+              "invalid_tags": [
+                {
+                  "key": "Environment",
+                  "value": ""
+                }
+              ],
+              "path": "modules/gcp/main.tf",
+              "line": 41,
+              "missing_mandatory_tags": [
+                "Service"
+              ],
+              "propagation_problems": []
+            },
+            {
+              "address": "module.gcp.google_storage_bucket.lab",
+              "resource_type": "google_storage_bucket",
+              "invalid_tags": [
+                {
+                  "key": "Environment",
+                  "value": ""
+                }
+              ],
+              "path": "modules/gcp/main.tf",
+              "line": 61,
+              "missing_mandatory_tags": [
+                "Service"
+              ],
+              "propagation_problems": []
+            }
+          ]
+        }
+      ],
+      "resources": [
+        {
+          "name": "module.azure.azurerm_network_interface.lab",
+          "type": "azurerm_network_interface",
+          "is_supported": true,
+          "is_free": true,
+          "supports_tags": true,
+          "metadata": {
+            "filename": "modules/azure/main.tf",
+            "start_line": 61,
+            "end_line": 71,
+            "deep_checksum": "29d7151051fb8446"
+          }
+        },
+        {
+          "name": "module.azure.azurerm_network_interface_security_group_association.lab",
+          "type": "azurerm_network_interface_security_group_association",
+          "is_supported": true,
+          "is_free": true,
+          "metadata": {
+            "filename": "modules/azure/main.tf",
+            "start_line": 72,
+            "end_line": 75,
+            "deep_checksum": "af3ba39ff32ed53b"
+          }
+        },
+        {
+          "name": "module.azure.azurerm_network_security_group.lab",
+          "type": "azurerm_network_security_group",
+          "is_supported": true,
+          "is_free": true,
+          "supports_tags": true,
+          "metadata": {
+            "filename": "modules/azure/main.tf",
+            "start_line": 34,
+            "end_line": 60,
+            "deep_checksum": "f0c620b4d9979837"
+          }
+        },
+        {
+          "name": "module.azure.azurerm_resource_group.lab",
+          "type": "azurerm_resource_group",
+          "is_supported": true,
+          "is_free": true,
+          "supports_tags": true,
+          "metadata": {
+            "filename": "modules/azure/main.tf",
+            "start_line": 11,
+            "end_line": 14,
+            "deep_checksum": "6442ec7fd3616ea5"
+          }
+        },
+        {
+          "name": "module.azure.azurerm_storage_container.lab",
+          "type": "azurerm_storage_container",
+          "is_supported": true,
+          "is_free": true,
+          "metadata": {
+            "filename": "modules/azure/main.tf",
+            "start_line": 110,
+            "end_line": 114,
+            "deep_checksum": "75e8edc40bb11a03"
+          }
+        },
+        {
+          "name": "module.azure.azurerm_subnet.lab",
+          "type": "azurerm_subnet",
+          "is_supported": true,
+          "is_free": true,
+          "metadata": {
+            "filename": "modules/azure/main.tf",
+            "start_line": 21,
+            "end_line": 26,
+            "deep_checksum": "543b041d1d7e8119"
+          }
+        },
+        {
+          "name": "module.gcp.google_compute_firewall.http",
+          "type": "google_compute_firewall",
+          "is_supported": true,
+          "is_free": true,
+          "metadata": {
+            "filename": "modules/gcp/main.tf",
+            "start_line": 21,
+            "end_line": 30,
+            "deep_checksum": "bb387b1ed2e3cc0b"
+          }
+        },
+        {
+          "name": "module.gcp.google_compute_firewall.ssh",
+          "type": "google_compute_firewall",
+          "is_supported": true,
+          "is_free": true,
+          "metadata": {
+            "filename": "modules/gcp/main.tf",
+            "start_line": 31,
+            "end_line": 40,
+            "deep_checksum": "c2b015740a3e7878"
+          }
+        },
+        {
+          "name": "module.gcp.google_compute_network.lab",
+          "type": "google_compute_network",
+          "is_supported": true,
+          "is_free": true,
+          "metadata": {
+            "filename": "modules/gcp/main.tf",
+            "start_line": 11,
+            "end_line": 14,
+            "deep_checksum": "5d3a03acacc41866"
+          }
+        },
+        {
+          "name": "module.gcp.google_compute_subnetwork.lab",
+          "type": "google_compute_subnetwork",
+          "is_supported": true,
+          "is_free": true,
+          "metadata": {
+            "filename": "modules/gcp/main.tf",
+            "start_line": 15,
+            "end_line": 20,
+            "deep_checksum": "b738abe44dd3b706"
+          }
+        },
+        {
+          "name": "module.aws.aws_internet_gateway.lab",
+          "type": "aws_internet_gateway",
+          "is_supported": true,
+          "is_free": true,
+          "supports_tags": true,
+          "supports_default_tags": true,
+          "metadata": {
+            "filename": "modules/aws/main.tf",
+            "start_line": 33,
+            "end_line": 33,
+            "deep_checksum": "f52bb832efb89131"
+          }
+        },
+        {
+          "name": "module.aws.aws_key_pair.lab",
+          "type": "aws_key_pair",
+          "is_supported": true,
+          "is_free": true,
+          "supports_tags": true,
+          "supports_default_tags": true,
+          "metadata": {
+            "filename": "modules/aws/main.tf",
+            "start_line": 67,
+            "end_line": 70,
+            "deep_checksum": "6966e9cfd262ed01"
+          }
+        },
+        {
+          "name": "module.aws.aws_route_table.lab",
+          "type": "aws_route_table",
+          "is_supported": true,
+          "is_free": true,
+          "supports_tags": true,
+          "supports_default_tags": true,
+          "metadata": {
+            "filename": "modules/aws/main.tf",
+            "start_line": 34,
+            "end_line": 40,
+            "deep_checksum": "a992b3dafc88a58d"
+          }
+        },
+        {
+          "name": "module.aws.aws_route_table_association.lab",
+          "type": "aws_route_table_association",
+          "is_supported": true,
+          "is_free": true,
+          "metadata": {
+            "filename": "modules/aws/main.tf",
+            "start_line": 41,
+            "end_line": 44,
+            "deep_checksum": "3d2d917bf96bed8e"
+          }
+        },
+        {
+          "name": "module.aws.aws_s3_bucket_public_access_block.lab",
+          "type": "aws_s3_bucket_public_access_block",
+          "is_supported": true,
+          "is_free": true,
+          "metadata": {
+            "filename": "modules/aws/main.tf",
+            "start_line": 91,
+            "end_line": 97,
+            "deep_checksum": "60ef18cb1f0026bc"
+          }
+        },
+        {
+          "name": "module.aws.aws_security_group.lab",
+          "type": "aws_security_group",
+          "is_supported": true,
+          "is_free": true,
+          "supports_tags": true,
+          "supports_default_tags": true,
+          "metadata": {
+            "filename": "modules/aws/main.tf",
+            "start_line": 45,
+            "end_line": 66,
+            "deep_checksum": "dea5f9b96aaabe69"
+          }
+        },
+        {
+          "name": "module.aws.aws_instance.lab",
+          "type": "aws_instance",
+          "is_supported": true,
+          "is_free": false,
+          "cost_components": [
+            {
+              "name": "Instance usage (Linux/UNIX, on-demand, t3.micro)",
+              "unit": "hours",
+              "price": "0.0104",
+              "quantity": "730",
+              "base_monthly_cost": "7.592",
+              "usage_monthly_cost": "0",
+              "total_monthly_cost": "7.592",
+              "monthly_carbon_savings_grams_co2e": "806.410122",
+              "monthly_water_savings_liters": "1.7962234"
+            }
+          ],
+          "subresources": [
+            {
+              "name": "root_block_device",
+              "type": "",
+              "is_supported": false,
+              "is_free": false,
+              "cost_components": [
+                {
+                  "name": "Storage (general purpose SSD, gp3)",
+                  "unit": "GB",
+                  "price": "0.08",
+                  "quantity": "8",
+                  "base_monthly_cost": "0.64",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0.64",
+                  "monthly_carbon_savings_grams_co2e": "17.94322096",
+                  "monthly_water_savings_liters": "0.0447432"
+                }
+              ],
+              "tags": {
+                "Name": "studentmc2026abc"
+              },
+              "supports_tags": true,
+              "supports_default_tags": true,
+              "metadata": {}
+            }
+          ],
+          "tags": {
+            "Name": "studentmc2026abc"
+          },
+          "supports_tags": true,
+          "supports_default_tags": true,
+          "metadata": {
+            "filename": "modules/aws/main.tf",
+            "start_line": 71,
+            "end_line": 89,
+            "deep_checksum": "15067c9a8ba3fba6"
+          }
+        },
+        {
+          "name": "module.aws.aws_subnet.lab",
+          "type": "aws_subnet",
+          "is_supported": false,
+          "is_free": false,
+          "supports_tags": true,
+          "supports_default_tags": true,
+          "metadata": {
+            "filename": "modules/aws/main.tf",
+            "start_line": 28,
+            "end_line": 32,
+            "deep_checksum": "df860d0141d391ce"
+          }
+        },
+        {
+          "name": "module.aws.aws_vpc.lab",
+          "type": "aws_vpc",
+          "is_supported": false,
+          "is_free": false,
+          "tags": {
+            "Name": "studentmc2026abc"
+          },
+          "supports_tags": true,
+          "supports_default_tags": true,
+          "metadata": {
+            "filename": "modules/aws/main.tf",
+            "start_line": 23,
+            "end_line": 27,
+            "deep_checksum": "5ebdfbdfabd09f5c"
+          }
+        },
+        {
+          "name": "module.aws.aws_s3_bucket.lab",
+          "type": "aws_s3_bucket",
+          "is_supported": true,
+          "is_free": false,
+          "subresources": [
+            {
+              "name": "Standard",
+              "type": "",
+              "is_supported": false,
+              "is_free": false,
+              "cost_components": [
+                {
+                  "name": "Storage",
+                  "unit": "GB",
+                  "price": "0.023",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "PUT, COPY, POST, LIST requests",
+                  "unit": "1k requests",
+                  "price": "0.005",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "GET, SELECT, and all other requests",
+                  "unit": "1k requests",
+                  "price": "0.0004",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Select data scanned",
+                  "unit": "GB",
+                  "price": "0.002",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Select data returned",
+                  "unit": "GB",
+                  "price": "0.0007",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                }
+              ],
+              "metadata": {}
+            },
+            {
+              "name": "Intelligent tiering",
+              "type": "",
+              "is_supported": false,
+              "is_free": false,
+              "cost_components": [
+                {
+                  "name": "Storage (frequent access)",
+                  "unit": "GB",
+                  "price": "0.023",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Storage (infrequent access)",
+                  "unit": "GB",
+                  "price": "0.0125",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Storage (archive access)",
+                  "unit": "GB",
+                  "price": "0.0036",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Storage (deep archive access)",
+                  "unit": "GB",
+                  "price": "0.00099",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Monitoring and automation",
+                  "unit": "1k objects",
+                  "price": "0.0025",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "PUT, COPY, POST, LIST requests",
+                  "unit": "1k requests",
+                  "price": "0.005",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "GET, SELECT, and all other requests",
+                  "unit": "1k requests",
+                  "price": "0.0004",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Lifecycle transition",
+                  "unit": "1k requests",
+                  "price": "0.01",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Select data scanned",
+                  "unit": "GB",
+                  "price": "0.002",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Select data returned",
+                  "unit": "GB",
+                  "price": "0.0007",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Early delete (within 30 days)",
+                  "unit": "GB",
+                  "price": "0.023",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                }
+              ],
+              "metadata": {}
+            },
+            {
+              "name": "Standard - infrequent access",
+              "type": "",
+              "is_supported": false,
+              "is_free": false,
+              "cost_components": [
+                {
+                  "name": "Storage",
+                  "unit": "GB",
+                  "price": "0.0125",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "PUT, COPY, POST, LIST requests",
+                  "unit": "1k requests",
+                  "price": "0.01",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "GET, SELECT, and all other requests",
+                  "unit": "1k requests",
+                  "price": "0.001",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Lifecycle transition",
+                  "unit": "1k requests",
+                  "price": "0.01",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Retrievals",
+                  "unit": "GB",
+                  "price": "0.01",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Select data scanned",
+                  "unit": "GB",
+                  "price": "0.002",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Select data returned",
+                  "unit": "GB",
+                  "price": "0.01",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                }
+              ],
+              "metadata": {}
+            },
+            {
+              "name": "One zone - infrequent access",
+              "type": "",
+              "is_supported": false,
+              "is_free": false,
+              "cost_components": [
+                {
+                  "name": "Storage",
+                  "unit": "GB",
+                  "price": "0.01",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "PUT, COPY, POST, LIST requests",
+                  "unit": "1k requests",
+                  "price": "0.01",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "GET, SELECT, and all other requests",
+                  "unit": "1k requests",
+                  "price": "0.001",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Lifecycle transition",
+                  "unit": "1k requests",
+                  "price": "0.01",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Retrievals",
+                  "unit": "GB",
+                  "price": "0.01",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Select data scanned",
+                  "unit": "GB",
+                  "price": "0.002",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Select data returned",
+                  "unit": "GB",
+                  "price": "0.01",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                }
+              ],
+              "metadata": {}
+            },
+            {
+              "name": "Glacier flexible retrieval",
+              "type": "",
+              "is_supported": false,
+              "is_free": false,
+              "cost_components": [
+                {
+                  "name": "Storage",
+                  "unit": "GB",
+                  "price": "0.0036",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "PUT, COPY, POST, LIST requests",
+                  "unit": "1k requests",
+                  "price": "0.03",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "GET, SELECT, and all other requests",
+                  "unit": "1k requests",
+                  "price": "0.0004",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Lifecycle transition",
+                  "unit": "1k requests",
+                  "price": "0.03",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Retrieval requests (standard)",
+                  "unit": "1k requests",
+                  "price": "0.03",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Retrievals (standard)",
+                  "unit": "GB",
+                  "price": "0.01",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Select data scanned (standard)",
+                  "unit": "GB",
+                  "price": "0.008",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Select data returned (standard)",
+                  "unit": "GB",
+                  "price": "0.01",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Retrieval requests (expedited)",
+                  "unit": "1k requests",
+                  "price": "10",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Retrievals (expedited)",
+                  "unit": "GB",
+                  "price": "0.03",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Select data scanned (expedited)",
+                  "unit": "GB",
+                  "price": "0.02",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Select data returned (expedited)",
+                  "unit": "GB",
+                  "price": "0.03",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Select data scanned (bulk)",
+                  "unit": "GB",
+                  "price": "0.001",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Select data returned (bulk)",
+                  "unit": "GB",
+                  "price": "0.0025",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Early delete (within 90 days)",
+                  "unit": "GB",
+                  "price": "0.0036",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                }
+              ],
+              "metadata": {}
+            },
+            {
+              "name": "Glacier deep archive",
+              "type": "",
+              "is_supported": false,
+              "is_free": false,
+              "cost_components": [
+                {
+                  "name": "Storage",
+                  "unit": "GB",
+                  "price": "0.00099",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "PUT, COPY, POST, LIST requests",
+                  "unit": "1k requests",
+                  "price": "0.05",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "GET, SELECT, and all other requests",
+                  "unit": "1k requests",
+                  "price": "0.0004",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Lifecycle transition",
+                  "unit": "1k requests",
+                  "price": "0.05",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Retrieval requests (standard)",
+                  "unit": "1k requests",
+                  "price": "0.1",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Retrievals (standard)",
+                  "unit": "GB",
+                  "price": "0.02",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Retrieval requests (bulk)",
+                  "unit": "1k requests",
+                  "price": "0.025",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Retrievals (bulk)",
+                  "unit": "GB",
+                  "price": "0.0025",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Early delete (within 180 days)",
+                  "unit": "GB",
+                  "price": "0.00099",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                }
+              ],
+              "metadata": {}
+            }
+          ],
+          "supports_tags": true,
+          "supports_default_tags": true,
+          "metadata": {
+            "filename": "modules/aws/main.tf",
+            "start_line": 90,
+            "end_line": 90,
+            "deep_checksum": "02d78af7e01eeea4"
+          }
+        },
+        {
+          "name": "module.azure.azurerm_linux_virtual_machine.lab",
+          "type": "azurerm_linux_virtual_machine",
+          "is_supported": true,
+          "is_free": false,
+          "cost_components": [
+            {
+              "name": "Instance usage (Linux, pay as you go, Standard_D2als_v7)",
+              "unit": "hours",
+              "price": "0.0804",
+              "quantity": "730",
+              "base_monthly_cost": "58.692",
+              "usage_monthly_cost": "0",
+              "total_monthly_cost": "58.692",
+              "monthly_carbon_savings_grams_co2e": "0",
+              "monthly_water_savings_liters": "0"
+            }
+          ],
+          "subresources": [
+            {
+              "name": "os_disk",
+              "type": "",
+              "is_supported": false,
+              "is_free": false,
+              "cost_components": [
+                {
+                  "name": "Storage (S4, LRS)",
+                  "unit": "months",
+                  "price": "1.536",
+                  "quantity": "1",
+                  "base_monthly_cost": "1.536",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "1.536",
+                  "monthly_carbon_savings_grams_co2e": "4.45562052",
+                  "monthly_water_savings_liters": "0.39063217"
+                },
+                {
+                  "name": "Disk operations",
+                  "unit": "10k operations",
+                  "price": "0.0005",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                }
+              ],
+              "metadata": {}
+            }
+          ],
+          "supports_tags": true,
+          "metadata": {
+            "filename": "modules/azure/main.tf",
+            "start_line": 76,
+            "end_line": 100,
+            "deep_checksum": "d21db570018955e2"
+          }
+        },
+        {
+          "name": "module.azure.azurerm_public_ip.lab",
+          "type": "azurerm_public_ip",
+          "is_supported": true,
+          "is_free": false,
+          "cost_components": [
+            {
+              "name": "IP address (static, regional)",
+              "unit": "hours",
+              "price": "0.005",
+              "quantity": "730",
+              "base_monthly_cost": "3.65",
+              "usage_monthly_cost": "0",
+              "total_monthly_cost": "3.65",
+              "monthly_carbon_savings_grams_co2e": "0",
+              "monthly_water_savings_liters": "0"
+            }
+          ],
+          "supports_tags": true,
+          "metadata": {
+            "filename": "modules/azure/main.tf",
+            "start_line": 27,
+            "end_line": 33,
+            "deep_checksum": "38191b742f3bb939"
+          }
+        },
+        {
+          "name": "module.azure.azurerm_virtual_network.lab",
+          "type": "azurerm_virtual_network",
+          "is_supported": true,
+          "is_free": true,
+          "supports_tags": true,
+          "metadata": {
+            "filename": "modules/azure/main.tf",
+            "start_line": 15,
+            "end_line": 20,
+            "deep_checksum": "5d5594f69d4173ae"
+          }
+        },
+        {
+          "name": "module.azure.azurerm_storage_account.lab",
+          "type": "azurerm_storage_account",
+          "is_supported": true,
+          "is_free": false,
+          "cost_components": [
+            {
+              "name": "Capacity",
+              "unit": "GB",
+              "price": "0.0184",
+              "quantity": "0",
+              "base_monthly_cost": "0",
+              "usage_monthly_cost": "0",
+              "total_monthly_cost": "0",
+              "monthly_carbon_savings_grams_co2e": "0",
+              "monthly_water_savings_liters": "0",
+              "usage_based": true
+            },
+            {
+              "name": "Write operations",
+              "unit": "10k operations",
+              "price": "0.05",
+              "quantity": "0",
+              "base_monthly_cost": "0",
+              "usage_monthly_cost": "0",
+              "total_monthly_cost": "0",
+              "monthly_carbon_savings_grams_co2e": "0",
+              "monthly_water_savings_liters": "0",
+              "usage_based": true
+            },
+            {
+              "name": "List and create container operations",
+              "unit": "10k operations",
+              "price": "0.05",
+              "quantity": "0",
+              "base_monthly_cost": "0",
+              "usage_monthly_cost": "0",
+              "total_monthly_cost": "0",
+              "monthly_carbon_savings_grams_co2e": "0",
+              "monthly_water_savings_liters": "0",
+              "usage_based": true
+            },
+            {
+              "name": "Read operations",
+              "unit": "10k operations",
+              "price": "0.004",
+              "quantity": "0",
+              "base_monthly_cost": "0",
+              "usage_monthly_cost": "0",
+              "total_monthly_cost": "0",
+              "monthly_carbon_savings_grams_co2e": "0",
+              "monthly_water_savings_liters": "0",
+              "usage_based": true
+            },
+            {
+              "name": "All other operations",
+              "unit": "10k operations",
+              "price": "0.004",
+              "quantity": "0",
+              "base_monthly_cost": "0",
+              "usage_monthly_cost": "0",
+              "total_monthly_cost": "0",
+              "monthly_carbon_savings_grams_co2e": "0",
+              "monthly_water_savings_liters": "0",
+              "usage_based": true
+            },
+            {
+              "name": "Blob index",
+              "unit": "10k tags",
+              "price": "0.03",
+              "quantity": "0",
+              "base_monthly_cost": "0",
+              "usage_monthly_cost": "0",
+              "total_monthly_cost": "0",
+              "monthly_carbon_savings_grams_co2e": "0",
+              "monthly_water_savings_liters": "0",
+              "usage_based": true
+            }
+          ],
+          "supports_tags": true,
+          "metadata": {
+            "filename": "modules/azure/main.tf",
+            "start_line": 101,
+            "end_line": 109,
+            "deep_checksum": "e497f3b8ee169d3d"
+          }
+        },
+        {
+          "name": "module.gcp.google_compute_instance.lab",
+          "type": "google_compute_instance",
+          "is_supported": true,
+          "is_free": false,
+          "cost_components": [
+            {
+              "name": "Instance usage (Linux/UNIX, on-demand, e2-micro)",
+              "unit": "hours",
+              "price": "0.0083764275",
+              "quantity": "730",
+              "base_monthly_cost": "6.114792075",
+              "usage_monthly_cost": "0",
+              "total_monthly_cost": "6.114792075",
+              "monthly_carbon_savings_grams_co2e": "0",
+              "monthly_water_savings_liters": "0"
+            },
+            {
+              "name": "Standard provisioned storage (pd-standard)",
+              "unit": "GB",
+              "price": "0.04",
+              "quantity": "30",
+              "base_monthly_cost": "1.2",
+              "usage_monthly_cost": "0",
+              "total_monthly_cost": "1.2",
+              "monthly_carbon_savings_grams_co2e": "65.0185317",
+              "monthly_water_savings_liters": "0.1416309"
+            }
+          ],
+          "supports_tags": true,
+          "supports_default_tags": true,
+          "metadata": {
+            "filename": "modules/gcp/main.tf",
+            "start_line": 41,
+            "end_line": 60,
+            "deep_checksum": "22956c6f56193dcd"
+          }
+        },
+        {
+          "name": "module.gcp.google_storage_bucket.lab",
+          "type": "google_storage_bucket",
+          "is_supported": true,
+          "is_free": false,
+          "cost_components": [
+            {
+              "name": "Storage (standard)",
+              "unit": "GiB",
+              "price": "0.02",
+              "quantity": "0",
+              "base_monthly_cost": "0",
+              "usage_monthly_cost": "0",
+              "total_monthly_cost": "0",
+              "monthly_carbon_savings_grams_co2e": "0",
+              "monthly_water_savings_liters": "0",
+              "usage_based": true
+            },
+            {
+              "name": "Object adds, bucket/object list (class A)",
+              "unit": "10k operations",
+              "price": "0.05",
+              "quantity": "0",
+              "base_monthly_cost": "0",
+              "usage_monthly_cost": "0",
+              "total_monthly_cost": "0",
+              "monthly_carbon_savings_grams_co2e": "0",
+              "monthly_water_savings_liters": "0",
+              "usage_based": true
+            },
+            {
+              "name": "Object gets, retrieve bucket/object metadata (class B)",
+              "unit": "10k operations",
+              "price": "0.004",
+              "quantity": "0",
+              "base_monthly_cost": "0",
+              "usage_monthly_cost": "0",
+              "total_monthly_cost": "0",
+              "monthly_carbon_savings_grams_co2e": "0",
+              "monthly_water_savings_liters": "0",
+              "usage_based": true
+            }
+          ],
+          "subresources": [
+            {
+              "name": "Network egress",
+              "type": "",
+              "is_supported": false,
+              "is_free": false,
+              "cost_components": [
+                {
+                  "name": "Data transfer in same continent",
+                  "unit": "GB",
+                  "price": "0.02",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Data transfer to worldwide excluding Asia, Australia (first 1TB)",
+                  "unit": "GB",
+                  "price": "0.12",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Data transfer to Asia excluding China, but including Hong Kong (first 1TB)",
+                  "unit": "GB",
+                  "price": "0.12",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Data transfer to China excluding Hong Kong (first 1TB)",
+                  "unit": "GB",
+                  "price": "0.23",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                },
+                {
+                  "name": "Data transfer to Australia (first 1TB)",
+                  "unit": "GB",
+                  "price": "0.19",
+                  "quantity": "0",
+                  "base_monthly_cost": "0",
+                  "usage_monthly_cost": "0",
+                  "total_monthly_cost": "0",
+                  "monthly_carbon_savings_grams_co2e": "0",
+                  "monthly_water_savings_liters": "0",
+                  "usage_based": true
+                }
+              ],
+              "metadata": {}
+            }
+          ],
+          "supports_tags": true,
+          "supports_default_tags": true,
+          "metadata": {
+            "filename": "modules/gcp/main.tf",
+            "start_line": 61,
+            "end_line": 68,
+            "deep_checksum": "04a771345fdf132a"
+          }
+        }
+      ],
+      "diagnostics": [
+        {
+          "prefix": "Info",
+          "message": "error calling function \"file\": file path /home/thupesh/multi-cloud-project/bootstrap/aws.sh is not within the repo root",
+          "severity": "info",
+          "location": "main.tf:18"
+        },
+        {
+          "prefix": "Info",
+          "message": "error calling function \"file\": file path /home/thupesh/.ssh/multicloud.pub is not within the repo root",
+          "severity": "info",
+          "location": "main.tf:17"
+        },
+        {
+          "prefix": "Info",
+          "message": "error calling function \"file\": file path /home/thupesh/multi-cloud-project/bootstrap/gcp.sh is not within the repo root",
+          "severity": "info",
+          "location": "main.tf:32"
+        },
+        {
+          "prefix": "Info",
+          "message": "error calling function \"file\": file path /home/thupesh/.ssh/multicloud.pub is not within the repo root",
+          "severity": "info",
+          "location": "main.tf:31"
+        },
+        {
+          "prefix": "Info",
+          "message": "error calling function \"file\": file path /home/thupesh/multi-cloud-project/bootstrap/azure.sh is not within the repo root",
+          "severity": "info",
+          "location": "main.tf:25"
+        },
+        {
+          "prefix": "Info",
+          "message": "error calling function \"file\": file path /home/thupesh/.ssh/multicloud.pub is not within the repo root",
+          "severity": "info",
+          "location": "main.tf:24"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+Provider  Count  Monthly Cost
+azurerm      10           $64
+aws          10            $8
+google        6            $7

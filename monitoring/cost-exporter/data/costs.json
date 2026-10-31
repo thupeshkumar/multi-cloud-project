@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "currency": "USD",
+  "generated_at": "2026-10-31T08:45:54.712135+00:00",
+  "source": "Infracost scan plus provider-filtered summaries",
+  "coverage": "Priced-resource subtotal. Inspect diagnostics for omitted and unsupported resources.",
+  "providers": {
+    "aws": "8.232",
+    "azure": "63.878",
+    "gcp": "7.314792075000001"
+  }
+}

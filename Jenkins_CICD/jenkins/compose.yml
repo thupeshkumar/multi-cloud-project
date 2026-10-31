@@ -1,0 +1,14 @@
+services:
+  jenkins:
+    build:
+      context: .
+      args:
+        TERRAFORM_VERSION: "1.13.5"
+    container_name: multicloud-jenkins
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - jenkins-home:/var/jenkins_home
+volumes:
+  jenkins-home:

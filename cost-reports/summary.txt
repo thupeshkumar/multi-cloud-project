@@ -1,0 +1,15 @@
+╭───────────────────────────────────────────╮
+│                                           │
+│   Scan Summary                            │
+│                                           │
+│   Resources:     26 (9 costed, 17 free)   │
+│   Monthly cost:  $79                      │
+│                                           │
+│   FinOps:        17 (⚠️ x9)               │
+│   Tagging:       1 (⚠️ x1)                │
+│   Guardrails:    0                        │
+│   Budgets:       0                        │
+│                                           │
+│   ⚠️  = failing policy                    │
+│                                           │
+╰───────────────────────────────────────────╯

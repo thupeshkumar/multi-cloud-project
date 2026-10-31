@@ -1,0 +1,5 @@
+  # Append under the EXISTING scrape_configs list.
+  - job_name: infracost
+    scrape_interval: 60s
+    static_configs:
+      - targets: ["cost-exporter:9400"]

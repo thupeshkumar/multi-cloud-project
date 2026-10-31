@@ -1,4 +1,4 @@
 # cloud ssh_user public_ipv4
 aws ubuntu 184.197.92.35
 azure labadmin 20.80.177.122
-gcp sivamcomz 34.56.109.225
+gcp labadmin 34.56.109.225

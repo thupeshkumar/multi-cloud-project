@@ -1,0 +1,21 @@
+# Add under the existing groups list in alerts.yml.
+- name: cost-report-health
+  rules:
+    - alert: CostReportUnavailable
+      expr: cost_exporter_report_valid{job="infracost"} == 0
+      for: 5m
+      labels: {severity: warning}
+      annotations:
+        summary: "Cost report is missing or invalid"
+    - alert: CostReportStale
+      expr: cost_exporter_report_stale{job="infracost"} == 1
+      for: 5m
+      labels: {severity: warning}
+      annotations:
+        summary: "Cost report is stale or unavailable"
+    - alert: CostExporterUnavailable
+      expr: up{job="infracost"} == 0
+      for: 5m
+      labels: {severity: warning}
+      annotations:
+        summary: "Cost exporter scrape failed"

@@ -1,0 +1,27 @@
+  - job_name: origins
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+
+    static_configs:
+      - targets: ["http://184.197.92.35/health"]
+        labels:
+          cloud: aws
+
+      - targets: ["http://20.80.177.122/health"]
+        labels:
+          cloud: azure
+
+      - targets: ["http://34.56.109.225/health"]
+        labels:
+          cloud: gcp
+
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+
+      - source_labels: [__param_target]
+        target_label: instance
+
+      - target_label: __address__
+        replacement: blackbox:9115

@@ -1,0 +1,549 @@
+{
+  "projects": 1,
+  "projects_with_errors": 0,
+  "project_details": [
+    {
+      "name": "main",
+      "path": ".",
+      "resources": 26,
+      "monthly_cost": "79.424792075",
+      "finops_policies": 17,
+      "finops_failing_policies": 9,
+      "tagging_policies": 1,
+      "tagging_failing_policies": 1,
+      "has_errors": false
+    }
+  ],
+  "resources": 26,
+  "costed_resources": 9,
+  "free_resources": 17,
+  "monthly_cost": "79.424792075",
+  "finops_policies": 17,
+  "failing_policies": 9,
+  "distinct_failing_finops_resources": 4,
+  "tagging_policies": 1,
+  "failing_tagging_policies": 1,
+  "distinct_failing_tagging_resources": 18,
+  "guardrails": 0,
+  "triggered_guardrails": 0,
+  "budgets": 0,
+  "over_budget": 0,
+  "critical_diagnostics": 0,
+  "warning_diagnostics": 0,
+  "currency": "USD",
+  "total_yearly_savings": "17.52",
+  "failing_policy_list": [
+    {
+      "kind": "finops",
+      "name": "S3 - consider deleting incomplete multi-part uploads",
+      "slug": "aws-delete-multi-part-uploads-s3-lifecycle-configuration",
+      "message": "When S3 uploads fail, the incomplete multi-part data still lives in S3 and costs money even though it's not a usable S3 object. You can avoid paying for that by setting the number of days after which these are deleted. We suggest 7 days.",
+      "project": "main",
+      "failing_finops": [
+        {
+          "name": "module.aws.aws_s3_bucket.lab",
+          "issues": [
+            {
+              "description": "Add a lifecycle rule which specifies a configuration to abort incomplete multipart uploads",
+              "yearly_savings": "0",
+              "monthly_carbon_savings_grams_co2e": "0",
+              "monthly_water_savings_liters": "0",
+              "address": "module.aws.aws_s3_bucket.lab"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "finops",
+      "name": "[EC2.9, EC2.25] Amazon EC2 and launch templates should not associate a public IPv4 address",
+      "slug": "aws-ec2-disable-associate-public-ipv4",
+      "message": "EC2 instances and launch templates should not have a public IPv4 address to reduce attack surface and prevent direct internet exposure. Use NAT gateways for outbound connectivity and AWS Systems Manager Session Manager for secure instance access. Corresponds to AWS Security Hub control EC2.9 and EC2.25.",
+      "project": "main",
+      "failing_finops": [
+        {
+          "name": "module.aws.aws_instance.lab",
+          "issues": [
+            {
+              "description": "Consider disabling `associate_public_ip_address`. Set it to `false` and use NAT gateways for outbound connectivity.",
+              "yearly_savings": "0",
+              "monthly_carbon_savings_grams_co2e": "0",
+              "monthly_water_savings_liters": "0",
+              "address": "module.aws.aws_instance.lab",
+              "attribute": "associate_public_ip_address"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "finops",
+      "name": "S3 - consider using Intelligent-Tiering or adding a lifecycle policy",
+      "slug": "aws-ensure-transition-rules-defined-s3-lifecycle-configuration",
+      "message": "Use a lifecycle policy to reduce object storage costs. You can reduce storage costs by defining policies that remove or move objects to a less expensive S3 storage class. For example, a bucket storing 1TB of data in a standard storage class would have a monthly cost of $23. If the same data was moved to Glacier Flexible Retrieval storage class it would have a monthly cost of just $3.60. That's a 84% cost saving.",
+      "project": "main",
+      "failing_finops": [
+        {
+          "name": "module.aws.aws_s3_bucket.lab",
+          "issues": [
+            {
+              "description": "Add a lifecycle rule which specifies a transition or expiration configuration",
+              "yearly_savings": "0",
+              "monthly_carbon_savings_grams_co2e": "0",
+              "monthly_water_savings_liters": "0",
+              "address": "module.aws.aws_s3_bucket.lab"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "finops",
+      "name": "[S3.5] S3 buckets should require requests to use SSL",
+      "slug": "aws-s3-bucket-ssl-requests-only",
+      "message": "S3 buckets should have a bucket policy that denies non-SSL (HTTP) requests. Without this policy, data in transit is not protected from interception. Add a bucket policy with a Deny statement for requests where aws:SecureTransport is false.",
+      "project": "main",
+      "failing_finops": [
+        {
+          "name": "module.aws.aws_s3_bucket.lab",
+          "issues": [
+            {
+              "description": "Attach a bucket policy with a `Deny` statement for requests where `aws:SecureTransport` is `false`, so non-SSL requests are rejected.",
+              "yearly_savings": "0",
+              "monthly_carbon_savings_grams_co2e": "0",
+              "monthly_water_savings_liters": "0",
+              "address": "module.aws.aws_s3_bucket.lab",
+              "attribute": "bucket"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "finops",
+      "name": "EC2 - consider using Graviton instances",
+      "slug": "aws-use-graviton-ec2-instance",
+      "message": "Graviton instances are around 20% cheaper than equivalent x86 instances.",
+      "project": "main",
+      "failing_finops": [
+        {
+          "name": "module.aws.aws_instance.lab",
+          "issues": [
+            {
+              "description": "Switch `instance_type` from `t3.micro` to `t4g.micro`",
+              "yearly_savings": "17.52",
+              "monthly_carbon_savings_grams_co2e": "-29.760851699999947",
+              "monthly_water_savings_liters": "1.2538188",
+              "address": "module.aws.aws_instance.lab",
+              "attribute": "instance_type"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "finops",
+      "name": "Storage Account - consider disabling public network access",
+      "slug": "azure-storage-account-disable-public-network-access",
+      "message": "Storage accounts should disable public network access to prevent direct internet exposure and improve security posture. Restrict access to private endpoints and virtual networks only.",
+      "project": "main",
+      "failing_finops": [
+        {
+          "name": "module.azure.azurerm_storage_account.lab",
+          "issues": [
+            {
+              "description": "Set `public_network_access_enabled` to `false` to prevent direct internet exposure and improve security posture.",
+              "yearly_savings": "0",
+              "monthly_carbon_savings_grams_co2e": "0",
+              "monthly_water_savings_liters": "0",
+              "address": "module.azure.azurerm_storage_account.lab",
+              "attribute": "public_network_access_enabled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "finops",
+      "name": "Storage Accounts - consider using a lifecycle policy for blob storage",
+      "slug": "azure-use-storage-account-lifecycle-policy",
+      "message": "A lifecycle policy should be defined for Azure blob storage accounts to automate the transition of your data based on its usage pattern to optimize storage costs, improve performance, or to delete blobs that are no longer needed.",
+      "project": "main",
+      "failing_finops": [
+        {
+          "name": "module.azure.azurerm_storage_account.lab",
+          "issues": [
+            {
+              "description": "Set `blob_properties[0].last_access_time_enabled` to `true` to take advantage of access time tracking",
+              "yearly_savings": "0",
+              "monthly_carbon_savings_grams_co2e": "0",
+              "monthly_water_savings_liters": "0",
+              "address": "module.azure.azurerm_storage_account.lab",
+              "attribute": "blob_properties[0].last_access_time_enabled"
+            },
+            {
+              "description": "Attach a storage management policy to this storage account to take advantage of lifecycle policies",
+              "yearly_savings": "0",
+              "monthly_carbon_savings_grams_co2e": "0",
+              "monthly_water_savings_liters": "0",
+              "address": "module.azure.azurerm_storage_account.lab"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "finops",
+      "name": "Cloud Storage - consider deleting incomplete multipart uploads",
+      "slug": "google-delete-incomplete-multipart-uploads-storage-bucket-lifecycle",
+      "message": "When Cloud Storage uploads fail, the incomplete multipart data still lives in the bucket and costs money even though it's not a usable object. Add a lifecycle rule to abort incomplete multipart uploads after a set number of days (suggest 7 days).",
+      "project": "main",
+      "failing_finops": [
+        {
+          "name": "module.gcp.google_storage_bucket.lab",
+          "issues": [
+            {
+              "description": "Add a lifecycle rule with an `AbortIncompleteMultipartUpload` action to clean up incomplete uploads",
+              "yearly_savings": "0",
+              "monthly_carbon_savings_grams_co2e": "0",
+              "monthly_water_savings_liters": "0",
+              "address": "module.gcp.google_storage_bucket.lab"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "finops",
+      "name": "Cloud Storage - consider adding lifecycle rules to transition or expire objects",
+      "slug": "google-ensure-transition-rules-storage-bucket-lifecycle",
+      "message": "Use lifecycle rules to reduce object storage costs. You can define rules that delete objects or move them to a cheaper storage class based on age or other conditions.",
+      "project": "main",
+      "failing_finops": [
+        {
+          "name": "module.gcp.google_storage_bucket.lab",
+          "issues": [
+            {
+              "description": "Add a lifecycle rule with a `SetStorageClass` or `Delete` action to define object lifecycle transitions",
+              "yearly_savings": "0",
+              "monthly_carbon_savings_grams_co2e": "0",
+              "monthly_water_savings_liters": "0",
+              "address": "module.gcp.google_storage_bucket.lab"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "tagging",
+      "name": "FinOps tags",
+      "message": "This example Tagging policy shows how you can enforce required FinOps tag keys/values in pull requests. This example checks for the tags 'Service' (can have any value) and 'Environment' (must be Dev/Stage/Prod) on all taggable resources being changed in the pull request. You can adjust it from https://dashboard.infracost.io > Governance > Tagging policies. You have a 14 day trial of this feature as it's part of Infracost Cloud.",
+      "project": "main",
+      "tag_schema": [
+        {
+          "key": "Environment",
+          "valid_values": [
+            "Dev",
+            "Prod",
+            "Stage"
+          ],
+          "mandatory": true
+        },
+        {
+          "key": "Service",
+          "mandatory": true
+        }
+      ],
+      "failing_tagging": [
+        {
+          "address": "module.azure.azurerm_network_interface.lab",
+          "resource_type": "azurerm_network_interface",
+          "invalid_tags": [
+            {
+              "key": "Environment",
+              "value": ""
+            }
+          ],
+          "path": "modules/azure/main.tf",
+          "line": 61,
+          "missing_mandatory_tags": [
+            "Service"
+          ],
+          "propagation_problems": []
+        },
+        {
+          "address": "module.azure.azurerm_network_security_group.lab",
+          "resource_type": "azurerm_network_security_group",
+          "invalid_tags": [
+            {
+              "key": "Environment",
+              "value": ""
+            }
+          ],
+          "path": "modules/azure/main.tf",
+          "line": 34,
+          "missing_mandatory_tags": [
+            "Service"
+          ],
+          "propagation_problems": []
+        },
+        {
+          "address": "module.azure.azurerm_resource_group.lab",
+          "resource_type": "azurerm_resource_group",
+          "invalid_tags": [
+            {
+              "key": "Environment",
+              "value": ""
+            }
+          ],
+          "path": "modules/azure/main.tf",
+          "line": 11,
+          "missing_mandatory_tags": [
+            "Service"
+          ],
+          "propagation_problems": []
+        },
+        {
+          "address": "module.aws.aws_internet_gateway.lab",
+          "resource_type": "aws_internet_gateway",
+          "invalid_tags": [
+            {
+              "key": "Environment",
+              "value": ""
+            }
+          ],
+          "path": "modules/aws/main.tf",
+          "line": 33,
+          "missing_mandatory_tags": [
+            "Service"
+          ],
+          "propagation_problems": []
+        },
+        {
+          "address": "module.aws.aws_key_pair.lab",
+          "resource_type": "aws_key_pair",
+          "invalid_tags": [
+            {
+              "key": "Environment",
+              "value": ""
+            }
+          ],
+          "path": "modules/aws/main.tf",
+          "line": 67,
+          "missing_mandatory_tags": [
+            "Service"
+          ],
+          "propagation_problems": []
+        },
+        {
+          "address": "module.aws.aws_route_table.lab",
+          "resource_type": "aws_route_table",
+          "invalid_tags": [
+            {
+              "key": "Environment",
+              "value": ""
+            }
+          ],
+          "path": "modules/aws/main.tf",
+          "line": 34,
+          "missing_mandatory_tags": [
+            "Service"
+          ],
+          "propagation_problems": []
+        },
+        {
+          "address": "module.aws.aws_security_group.lab",
+          "resource_type": "aws_security_group",
+          "invalid_tags": [
+            {
+              "key": "Environment",
+              "value": ""
+            }
+          ],
+          "path": "modules/aws/main.tf",
+          "line": 45,
+          "missing_mandatory_tags": [
+            "Service"
+          ],
+          "propagation_problems": []
+        },
+        {
+          "address": "module.aws.aws_instance.lab",
+          "resource_type": "aws_instance",
+          "invalid_tags": [
+            {
+              "key": "Environment",
+              "value": ""
+            }
+          ],
+          "path": "modules/aws/main.tf",
+          "line": 71,
+          "missing_mandatory_tags": [
+            "Service"
+          ],
+          "propagation_problems": []
+        },
+        {
+          "address": "module.aws.aws_instance.lab.root_block_device",
+          "resource_type": "aws_instance",
+          "invalid_tags": [
+            {
+              "key": "Environment",
+              "value": ""
+            }
+          ],
+          "path": "modules/aws/main.tf",
+          "line": 71,
+          "missing_mandatory_tags": [
+            "Service"
+          ],
+          "propagation_problems": []
+        },
+        {
+          "address": "module.aws.aws_subnet.lab",
+          "resource_type": "aws_subnet",
+          "invalid_tags": [
+            {
+              "key": "Environment",
+              "value": ""
+            }
+          ],
+          "path": "modules/aws/main.tf",
+          "line": 28,
+          "missing_mandatory_tags": [
+            "Service"
+          ],
+          "propagation_problems": []
+        },
+        {
+          "address": "module.aws.aws_vpc.lab",
+          "resource_type": "aws_vpc",
+          "invalid_tags": [
+            {
+              "key": "Environment",
+              "value": ""
+            }
+          ],
+          "path": "modules/aws/main.tf",
+          "line": 23,
+          "missing_mandatory_tags": [
+            "Service"
+          ],
+          "propagation_problems": []
+        },
+        {
+          "address": "module.aws.aws_s3_bucket.lab",
+          "resource_type": "aws_s3_bucket",
+          "invalid_tags": [
+            {
+              "key": "Environment",
+              "value": ""
+            }
+          ],
+          "path": "modules/aws/main.tf",
+          "line": 90,
+          "missing_mandatory_tags": [
+            "Service"
+          ],
+          "propagation_problems": []
+        },
+        {
+          "address": "module.azure.azurerm_linux_virtual_machine.lab",
+          "resource_type": "azurerm_linux_virtual_machine",
+          "invalid_tags": [
+            {
+              "key": "Environment",
+              "value": ""
+            }
+          ],
+          "path": "modules/azure/main.tf",
+          "line": 76,
+          "missing_mandatory_tags": [
+            "Service"
+          ],
+          "propagation_problems": []
+        },
+        {
+          "address": "module.azure.azurerm_public_ip.lab",
+          "resource_type": "azurerm_public_ip",
+          "invalid_tags": [
+            {
+              "key": "Environment",
+              "value": ""
+            }
+          ],
+          "path": "modules/azure/main.tf",
+          "line": 27,
+          "missing_mandatory_tags": [
+            "Service"
+          ],
+          "propagation_problems": []
+        },
+        {
+          "address": "module.azure.azurerm_virtual_network.lab",
+          "resource_type": "azurerm_virtual_network",
+          "invalid_tags": [
+            {
+              "key": "Environment",
+              "value": ""
+            }
+          ],
+          "path": "modules/azure/main.tf",
+          "line": 15,
+          "missing_mandatory_tags": [
+            "Service"
+          ],
+          "propagation_problems": []
+        },
+        {
+          "address": "module.azure.azurerm_storage_account.lab",
+          "resource_type": "azurerm_storage_account",
+          "invalid_tags": [
+            {
+              "key": "Environment",
+              "value": ""
+            }
+          ],
+          "path": "modules/azure/main.tf",
+          "line": 101,
+          "missing_mandatory_tags": [
+            "Service"
+          ],
+          "propagation_problems": []
+        },
+        {
+          "address": "module.gcp.google_compute_instance.lab",
+          "resource_type": "google_compute_instance",
+          "invalid_tags": [
+            {
+              "key": "Environment",
+              "value": ""
+            }
+          ],
+          "path": "modules/gcp/main.tf",
+          "line": 41,
+          "missing_mandatory_tags": [
+            "Service"
+          ],
+          "propagation_problems": []
+        },
+        {
+          "address": "module.gcp.google_storage_bucket.lab",
+          "resource_type": "google_storage_bucket",
+          "invalid_tags": [
+            {
+              "key": "Environment",
+              "value": ""
+            }
+          ],
+          "path": "modules/gcp/main.tf",
+          "line": 61,
+          "missing_mandatory_tags": [
+            "Service"
+          ],
+          "propagation_problems": []
+        }
+      ]
+    }
+  ]
+}

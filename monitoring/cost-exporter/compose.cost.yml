@@ -1,0 +1,11 @@
+services:
+  cost-exporter:
+    build: ./cost-exporter
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9400:9400"
+    environment:
+      COST_FILE: /data/costs.json
+      MAX_REPORT_AGE_SECONDS: "86400"
+    volumes:
+      - ./cost-exporter/data:/data:ro

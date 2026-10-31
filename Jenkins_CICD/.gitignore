@@ -1,0 +1,15 @@
+.terraform/
+*.tfstate*
+*.tfplan
+terraform.tfvars
+*.auto.tfvars
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+backups/
+recovered/
+deployment-evidence/
+**/tunnel-key
+**/known_hosts

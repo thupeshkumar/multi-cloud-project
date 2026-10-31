@@ -1,0 +1,36 @@
+{
+  "aws": [
+    {
+      "serviceKeyName": "my-aws-key",
+      "serviceKeySecret": "my-aws-secret",
+      "athenaBucket": "s3://your-athena-query-results-bucket",
+      "athenaRegion": "us-east-1",
+      "athenaDatabase": "athenadatabase",
+      "athenaTable": "athenatable",
+      "athenaWorkgroup": "primary",
+      "accountID": "123456789012"
+    }
+  ],
+  "azure": [
+    {
+      "azureTenantID": "your-tenant-id",
+      "azureClientID": "your-client-id",
+      "azureClientSecret": "your-client-secret",
+      "azureSubscriptionID": "your-subscription-id",
+      "azureResourceGroup": "your-resource-group",
+      "azureStorageAccount": "your-storage-account",
+      "azureStorageContainer": "your-storage-container",
+      "azureCloud": "public"
+    }
+  ],
+  "gcp": [
+    {
+      "type": "service_account",
+      "project_id": "your-gcp-project-id",
+      "private_key_id": "your-private-key-id",
+      "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC7...\n-----END PRIVATE KEY-----\n",
+      "client_email": "your-service-account@://gserviceaccount.com",
+      "client_id": "your-client-id"
+    }
+  ]
+}
