@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Multi Cloud Terraform Lab</title>
+  <style>
+    body { max-width: 760px; margin: 72px auto; padding: 0 24px; font-family: Arial, sans-serif; color: #163044; line-height: 1.6; }
+    h1 { font-size: 36px; }
+  </style>
+</head>
+<body>
+  <h1>Multi Cloud Terraform Lab</h1>
+  <p>Provider: {{CLOUD}}</p>
+  <p>Deployment revision: {{REVISION}}</p>
+  <p>Students: Thupeshkumar and Jilan</p>
+</body>
+</html>
